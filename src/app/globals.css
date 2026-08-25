@@ -1,26 +1,136 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+:root { --ink:#17221c; --muted:#6d7770; --line:#dfe5e1; --soft-line:#e9eeeb; --cream:#f4f5f0; --forest:#163f2b; --green:#23764b; --signal:#d8ff68; --signal-soft:#f3ffd4; }
+@theme inline { --color-background:var(--cream); --color-foreground:var(--ink); --font-sans:Arial,Helvetica,sans-serif; --font-mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace; }
+* { box-sizing:border-box; }
+body { margin:0; overflow-x:hidden; background:var(--cream); color:var(--ink); font-family:Arial,Helvetica,sans-serif; }
+button { font:inherit; }
+.dashboard-shell { min-height:100vh; position:relative; overflow:hidden; background:linear-gradient(180deg,rgba(22,63,43,.025) 0,transparent 380px),var(--cream); }
+.ambient { position:absolute; border-radius:999px; pointer-events:none; filter:blur(2px); }
+.ambient-one { width:460px; height:460px; right:-200px; top:-230px; background:rgba(192,231,89,.14); }
+.ambient-two { width:300px; height:300px; left:-180px; top:410px; background:rgba(37,118,75,.055); }
+.dashboard-container { width:min(1180px,calc(100% - 48px)); margin:0 auto; position:relative; padding-bottom:34px; }
+.site-header { min-height:110px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); }
+.brand-block,.header-actions,.toolbar,.league-label,.kickoff-line,.status-badge,.live-count,.refresh-button,.refresh-meta,.error-banner,footer { display:flex; align-items:center; }
+.brand-block { gap:14px; }
+.brand-icon { width:42px; height:42px; display:grid; place-items:center; color:var(--signal); background:var(--forest); border-radius:12px; box-shadow:0 5px 12px rgba(22,63,43,.14); }
+.eyebrow { color:var(--green); font-size:10px; line-height:1; font-weight:800; letter-spacing:.16em; text-transform:uppercase; margin-bottom:7px; }
+.site-header h1 { margin:0; font-size:22px; line-height:1.05; letter-spacing:-.035em; font-weight:680; }
+.header-actions { gap:12px; }
+.live-count { gap:7px; height:38px; padding:0 13px; border:1px solid var(--line); border-radius:10px; background:rgba(255,255,255,.65); font-size:12px; color:var(--muted); }
+.live-count strong { color:var(--ink); }
+.live-dot { width:7px; height:7px; border-radius:50%; background:#34a466; box-shadow:0 0 0 4px rgba(52,164,102,.12); }
+.refresh-button { gap:7px; height:38px; padding:0 13px; border:1px solid var(--forest); border-radius:10px; background:var(--forest); color:white; font-size:12px; font-weight:650; cursor:pointer; transition:transform .18s,background .18s; }
+.refresh-button:hover { background:#20563c; transform:translateY(-1px); }
+.refresh-button:disabled { opacity:.7; cursor:wait; }
+.is-spinning { animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.toolbar { justify-content:space-between; padding:22px 0 36px; }
+.filter-shell { display:inline-flex; padding:4px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.72); box-shadow:0 2px 7px rgba(24,46,34,.03); }
+.filter-shell button { border:0; background:transparent; color:var(--muted); padding:9px 13px; border-radius:8px; font-size:12px; font-weight:620; cursor:pointer; transition:.18s ease; }
+.filter-shell button:hover { color:var(--ink); }
+.filter-shell button span { margin-left:5px; color:#98a19b; font-size:10px; }
+.filter-shell .filter-active { background:var(--forest); color:white; box-shadow:0 2px 5px rgba(22,63,43,.15); }
+.filter-shell .filter-active:hover { color:white; }
+.filter-shell .filter-active span { color:var(--signal); }
+.refresh-meta { gap:6px; color:#838d86; font-size:11px; }
+.error-banner { gap:9px; padding:11px 13px; margin:-18px 0 26px; border:1px solid #efd6a9; border-radius:10px; background:#fff8eb; color:#825d20; font-size:12px; }
+.error-banner button { margin-left:auto; padding:0; border:0; background:none; color:inherit; text-decoration:underline; cursor:pointer; font-weight:650; }
+.content-section { margin-bottom:52px; }
+.section-heading { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:19px; }
+.section-kicker { display:block; margin-bottom:7px; color:#7d8780; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.14em; }
+.section-kicker-active { color:var(--green); }
+.section-heading h2 { margin:0; font-size:24px; line-height:1.15; letter-spacing:-.04em; font-weight:680; }
+.section-heading p { margin:6px 0 0; color:var(--muted); font-size:12px; }
+.section-count { padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.55); color:var(--muted); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; }
+.active-count { border-color:#cae69d; color:#32613f; background:#effbdd; }
+.signal-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; min-width:0; }
+.signal-card { width:100%; min-width:0; max-width:100%; position:relative; overflow:hidden; padding:20px; border:1px solid #dce4d7; border-radius:16px; background:rgba(255,255,255,.9); box-shadow:0 8px 26px rgba(25,50,35,.055); }
+.signal-accent { position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--signal); }
+.card-topline { display:flex; align-items:center; justify-content:space-between; }
+.league-label { gap:7px; color:var(--muted); font-size:10px; font-weight:650; text-transform:uppercase; letter-spacing:.07em; }
+.league-mark { display:grid; place-items:center; width:22px; height:22px; border-radius:6px; color:white; font-size:8px; font-weight:850; letter-spacing:0; }
+.league-epl { background:#3b1b4d; }
+.league-laliga { background:#d7512d; }
+.status-badge { gap:5px; width:fit-content; white-space:nowrap; border-radius:999px; font-size:9px; line-height:1; padding:6px 8px; font-weight:780; text-transform:uppercase; letter-spacing:.06em; }
+.status-active { background:var(--signal-soft); color:#2d5b36; border:1px solid #d8eeae; }
+.status-quiet { background:#f1f3f1; color:#758078; border:1px solid #e3e8e4; }
+.status-unavailable { background:#fff3df; color:#9a661b; border:1px solid #f2dfbd; }
+.status-dot { width:5px; height:5px; border-radius:50%; background:#a7afa9; }
+.match-heading { margin:22px 0 9px; display:flex; align-items:baseline; gap:7px; flex-wrap:wrap; }
+.match-heading h3 { margin:0; font-size:20px; line-height:1.2; letter-spacing:-.035em; font-weight:680; }
+.match-heading span { color:#a4aca6; font:500 11px var(--font-geist-mono); text-transform:uppercase; }
+.kickoff-line { gap:6px; color:#78827b; font-size:11px; }
+.line-divider { width:1px; height:11px; margin:0 3px; background:#d7ddd9; }
+.odds-row { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; min-width:0; }
+.signal-card .odds-row { margin-top:21px; }
+.odds-cell { min-width:0; position:relative; padding:11px 10px 10px; border:1px solid var(--soft-line); border-radius:10px; background:#fafbf9; text-align:center; }
+.odds-highlighted { border-color:#bcd969; background:#f5ffdc; box-shadow:inset 0 0 0 1px rgba(188,217,105,.18); }
+.odds-label { display:flex; justify-content:center; align-items:center; gap:4px; color:#879089; font-size:8px; line-height:1; text-transform:uppercase; letter-spacing:.12em; font-weight:750; }
+.odds-highlighted .odds-label { color:#497037; }
+.odds-value { margin:7px 0 3px; color:var(--ink); font:650 19px/1 var(--font-geist-mono); letter-spacing:-.04em; }
+.odds-opening { color:#9aa29c; font:500 9px/1.2 var(--font-geist-mono); }
+.signal-note { display:flex; align-items:flex-end; justify-content:space-between; gap:14px; margin:15px 1px 0; }
+.signal-explanation { margin:0; max-width:70%; color:var(--muted); font-size:10px; line-height:1.5; }
+.signal-explanation strong { color:#4f5d54; font-weight:700; }
+.updated-time { color:#9aa19c; font-size:9px; white-space:nowrap; }
+.upcoming-section { margin-top:58px; }
+.matches-list { overflow:hidden; border:1px solid var(--line); border-radius:15px; background:rgba(255,255,255,.78); box-shadow:0 8px 25px rgba(25,50,35,.035); }
+.match-card { display:grid; grid-template-columns:minmax(250px,1.35fr) minmax(320px,1fr) 120px; align-items:center; min-height:118px; padding:18px 20px; border-bottom:1px solid var(--soft-line); }
+.match-card:last-child { border-bottom:0; }
+.match-card:hover { background:rgba(250,252,249,.9); }
+.match-info h3 { margin:12px 0 8px; font-size:15px; line-height:1.2; letter-spacing:-.02em; font-weight:670; }
+.match-info h3 span { padding:0 3px; color:#a0a8a2; font:500 9px var(--font-geist-mono); text-transform:uppercase; }
+.match-odds { padding:0 23px; border-left:1px solid var(--soft-line); border-right:1px solid var(--soft-line); }
+.match-odds .odds-cell { padding:8px 6px; border:0; background:transparent; }
+.match-odds .odds-value { font-size:15px; }
+.match-status { display:flex; flex-direction:column; align-items:flex-end; gap:10px; }
+.empty-state { display:flex; align-items:center; gap:12px; padding:22px; border:1px dashed #ced7d1; border-radius:13px; color:#78827b; background:rgba(255,255,255,.35); font-size:12px; }
+.empty-state div { display:flex; flex-direction:column; gap:3px; }
+.empty-state strong { color:#4c5850; }
+.empty-state span { font-size:10px; }
+.loading-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+.loading-card { height:285px; padding:24px; border:1px solid var(--line); border-radius:16px; background:rgba(255,255,255,.72); }
+.skeleton { border-radius:7px; background:linear-gradient(90deg,#edf0ed 25%,#f7f8f6 50%,#edf0ed 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; }
+.skeleton-small { width:92px; height:17px; }
+.skeleton-title { width:70%; height:26px; margin-top:42px; }
+.skeleton-odds { height:76px; margin-top:40px; }
+@keyframes shimmer { to { background-position:-200% 0; } }
+footer { justify-content:center; gap:10px; padding-top:10px; color:#949d96; font-size:9px; text-transform:uppercase; letter-spacing:.08em; }
+.footer-divider { width:3px; height:3px; border-radius:50%; background:#bdc4bf; }
+@media (max-width:820px) {
+  .dashboard-container { width:min(100% - 32px,680px); }
+  .signal-grid { grid-template-columns:1fr; }
+  .match-card { grid-template-columns:1fr; gap:17px; }
+  .match-odds { padding:14px 0; border:0; border-top:1px solid var(--soft-line); border-bottom:1px solid var(--soft-line); }
+  .match-status { flex-direction:row; align-items:center; justify-content:space-between; }
 }
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@media (max-width:600px) {
+  .dashboard-container { width:calc(100% - 24px); }
+  .site-header { min-height:94px; }
+  .brand-icon { width:38px; height:38px; }
+  .site-header h1 { font-size:18px; }
+  .live-count { display:none; }
+  .refresh-button span { display:none; }
+  .refresh-button { width:38px; padding:0; justify-content:center; }
+  .toolbar { align-items:flex-end; padding:18px 0 30px; }
+  .filter-shell { width:100%; }
+  .filter-shell button { flex:1; min-width:0; padding:9px 4px; font-size:10px; white-space:nowrap; }
+  .filter-shell button:first-child { flex:.82; }
+  .refresh-meta { display:none; }
+  .section-heading { align-items:flex-start; }
+  .section-heading h2 { font-size:21px; }
+  .section-heading p { max-width:260px; line-height:1.45; }
+  .signal-card { padding:17px 15px; }
+  .match-heading { margin-top:19px; }
+  .match-heading h3 { font-size:18px; }
+  .signal-note { align-items:flex-start; flex-direction:column; gap:7px; }
+  .signal-explanation { max-width:100%; }
+  .match-card { padding:17px 15px; }
+  .odds-cell { padding-left:5px; padding-right:5px; }
+  .odds-value { font-size:17px; }
+  .odds-opening { font-size:8px; }
+  .upcoming-section { margin-top:48px; }
+  footer { flex-wrap:wrap; line-height:1.6; }
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; } }
