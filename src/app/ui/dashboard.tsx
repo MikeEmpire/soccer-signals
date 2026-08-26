@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, AlertCircle, ArrowUpRight, CalendarDays, Check, Clock3, RefreshCw, Shield } from "lucide-react";
+import { Activity, AlertCircle, ArrowUpRight, CalendarDays, Check, ChevronDown, Clock3, RefreshCw, Shield, Timer } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type League = "all" | "eng.1" | "esp.1";
@@ -9,6 +9,8 @@ type Odds = { home_ml: number; draw_ml: number; away_ml: number; open_home_ml: n
 type Signal = { type: SignalType; matched: boolean; draw_gap: number; higher_ml_side: "home" | "away"; higher_team_ml: number; other_team_ml: number; predicted_side: "home" | "away" | "draw" | null };
 type Match = { id: number; espn_event_id: string; league: Exclude<League, "all">; kickoff: string; home_team: string; away_team: string; odds: Odds | null; signal: Signal | null };
 type ApiResponse = { count: number; upcoming_days: number; matches: Match[] };
+type HistorySnapshot = { snapshot_id: number; captured_at: string; home_ml: number; draw_ml: number; away_ml: number; delta_home_ml: number | null; delta_draw_ml: number | null; delta_away_ml: number | null; signal: Signal };
+type OddsHistoryResponse = { espn_event_id: string; snapshot_count: number; history: HistorySnapshot[] };
 
 const REFRESH_INTERVAL = 60_000;
 const leagueMeta = {
@@ -39,6 +41,43 @@ function relativeTime(value: string, now: number) {
   return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
+function formatSnapshotTime(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function formatCompactDuration(totalSeconds: number) {
+  const days = Math.floor(totalSeconds / 86_400);
+  const hours = Math.floor((totalSeconds % 86_400) / 3_600);
+  const minutes = Math.floor((totalSeconds % 3_600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (minutes > 0) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
+}
+
+function formatCountdown(kickoff: string, now: number) {
+  const remainingSeconds = Math.max(0, Math.floor((new Date(kickoff).getTime() - now) / 1000));
+  return remainingSeconds <= 0 ? "Started" : formatCompactDuration(remainingSeconds);
+}
+
+function formatOddsAge(capturedAt: string, now: number) {
+  const elapsedSeconds = Math.max(0, Math.floor((now - new Date(capturedAt).getTime()) / 1000));
+  return `${formatCompactDuration(elapsedSeconds)} ago`;
+}
+
+function formatDelta(value: number | null) {
+  if (value === null) return "Opening";
+  if (value === 0) return "No change";
+  return value > 0 ? `+${value}` : String(value);
+}
+
 function signalLabel(signal: Signal) {
   if (signal.type === "draw") return "Draw signal";
   if (signal.type === "away_win") return "Away win";
@@ -56,11 +95,11 @@ function LeagueMark({ league }: { league: Match["league"] }) {
   return <span className={`league-mark league-${league === "eng.1" ? "epl" : "laliga"}`}>{leagueMeta[league].mark}</span>;
 }
 
-function OddsRow({ odds, highlighted }: { odds: Odds | null; highlighted?: Signal["predicted_side"] }) {
+function OddsRow({ odds, homeTeam, awayTeam, highlighted }: { odds: Odds | null; homeTeam: string; awayTeam: string; highlighted?: Signal["predicted_side"] }) {
   const columns = [
-    { key: "home", label: "Home", current: odds?.home_ml, opening: odds?.open_home_ml },
+    { key: "home", label: homeTeam, current: odds?.home_ml, opening: odds?.open_home_ml },
     { key: "draw", label: "Draw", current: odds?.draw_ml, opening: odds?.open_draw_ml },
-    { key: "away", label: "Away", current: odds?.away_ml, opening: odds?.open_away_ml },
+    { key: "away", label: awayTeam, current: odds?.away_ml, opening: odds?.open_away_ml },
   ] as const;
   return <div className="odds-row">{columns.map((column) => (
     <div className={`odds-cell ${highlighted === column.key ? "odds-highlighted" : ""}`} key={column.key}>
@@ -71,10 +110,79 @@ function OddsRow({ odds, highlighted }: { odds: Odds | null; highlighted?: Signa
   ))}</div>;
 }
 
-function SignalExplanation({ signal }: { signal: Signal }) {
-  const higherSide = signal.higher_ml_side === "home" ? "Home" : "Away";
-  const oppositeSide = signal.higher_ml_side === "home" ? "Away" : "Home";
+function SignalExplanation({ signal, homeTeam, awayTeam }: { signal: Signal; homeTeam: string; awayTeam: string }) {
+  const higherSide = signal.higher_ml_side === "home" ? homeTeam : awayTeam;
+  const oppositeSide = signal.higher_ml_side === "home" ? awayTeam : homeTeam;
   return <p className="signal-explanation">Draw is <strong>{signal.draw_gap} points</strong> from {higherSide} <strong>{formatMoneyline(signal.higher_team_ml)}</strong>. Opposite side is {oppositeSide} <strong>{formatMoneyline(signal.other_team_ml)}</strong>.</p>;
+}
+
+function MatchCountdown({ kickoff, now }: { kickoff: string; now: number }) {
+  const countdown = formatCountdown(kickoff, now);
+  return <span className={`match-countdown ${countdown === "Started" ? "countdown-started" : ""}`} aria-label={countdown === "Started" ? "Match has started" : `Starts in ${countdown}`}>
+    <Timer size={12} />
+    <span>{countdown}</span>
+  </span>;
+}
+
+function HistoryLeg({ label, odds, delta }: { label: string; odds: number; delta: number | null }) {
+  return <div className="history-leg">
+    <span className="history-leg-label">{label}</span>
+    <strong>{formatMoneyline(odds)}</strong>
+    <span className={`history-delta ${delta === null || delta === 0 ? "history-delta-neutral" : delta > 0 ? "history-delta-up" : "history-delta-down"}`}>{formatDelta(delta)}</span>
+  </div>;
+}
+
+function OddsHistory({ match, now }: { match: Match; now: number }) {
+  const [data, setData] = useState<OddsHistoryResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function loadHistory() {
+    if (loading || data) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/history/${encodeURIComponent(match.espn_event_id)}`, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Request failed (${response.status})`);
+      setData((await response.json()) as OddsHistoryResponse);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Unable to load odds history.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return <details className="signal-dropdown" onToggle={(event) => {
+    if (event.currentTarget.open) void loadHistory();
+  }}>
+    <summary><span>Signal details</span>{match.odds && <span className="updated-time">Updated {relativeTime(match.odds.captured_at, now)}</span>}<ChevronDown className="dropdown-chevron" size={14} /></summary>
+    <div className="signal-note"><SignalExplanation signal={match.signal as Signal} homeTeam={match.home_team} awayTeam={match.away_team} /></div>
+    <div className="history-section">
+      <div className="history-heading">
+        <div><strong>Odds movement</strong><span>Only recorded when a price changes</span></div>
+        {data && <span>{Math.max(0, data.snapshot_count - 1)} movements · {data.snapshot_count} snapshots</span>}
+      </div>
+      {loading && <div className="history-loading"><RefreshCw className="is-spinning" size={14} /> Loading price history…</div>}
+      {error && <div className="history-error"><AlertCircle size={14} /><span>Couldn’t load price history.</span><button type="button" onClick={() => { setData(null); void loadHistory(); }}>Try again</button></div>}
+      {data && [...data.history].reverse().map((snapshot, reverseIndex) => {
+        const movementIndex = data.history.length - reverseIndex - 1;
+        return <div className="history-row" key={snapshot.snapshot_id}>
+          <div className="history-meta">
+            <span className="history-sequence">{movementIndex === 0 ? "First snapshot" : `Movement ${movementIndex}`}</span>
+          <time dateTime={snapshot.captured_at}>{formatSnapshotTime(snapshot.captured_at)}</time>
+          <span className="history-age">{formatOddsAge(snapshot.captured_at, now)}</span>
+            <span className={snapshot.signal.matched ? "history-signal-active" : "history-signal-quiet"}>{snapshot.signal.matched ? `${signalLabel(snapshot.signal)} active` : "No signal"}</span>
+          </div>
+          <div className="history-legs">
+            <HistoryLeg label={match.home_team} odds={snapshot.home_ml} delta={snapshot.delta_home_ml} />
+            <HistoryLeg label="Draw" odds={snapshot.draw_ml} delta={snapshot.delta_draw_ml} />
+            <HistoryLeg label={match.away_team} odds={snapshot.away_ml} delta={snapshot.delta_away_ml} />
+          </div>
+        </div>;
+      })}
+      {data?.history.length === 0 && <div className="history-empty">No odds snapshots have been recorded yet.</div>}
+    </div>
+  </details>;
 }
 
 function SignalCard({ match, now }: { match: Match; now: number }) {
@@ -84,17 +192,17 @@ function SignalCard({ match, now }: { match: Match; now: number }) {
     <div className="signal-accent" />
     <div className="card-topline"><div className="league-label"><LeagueMark league={match.league} /><span>{leagueMeta[match.league].name}</span></div><SignalBadge signal={signal} /></div>
     <div className="match-heading"><h3>{match.home_team}</h3><span>vs</span><h3>{match.away_team}</h3></div>
-    <div className="kickoff-line"><CalendarDays size={14} /> {kickoff.date}<span className="line-divider" /><Clock3 size={14} /> {kickoff.time}</div>
-    <OddsRow odds={match.odds} highlighted={signal.predicted_side} />
-    <div className="signal-note"><SignalExplanation signal={signal} />{match.odds && <span className="updated-time">Updated {relativeTime(match.odds.captured_at, now)}</span>}</div>
+    <div className="kickoff-line"><CalendarDays size={14} /> {kickoff.date}<span className="line-divider" /><Clock3 size={14} /> {kickoff.time}<MatchCountdown kickoff={match.kickoff} now={now} /></div>
+    <OddsRow odds={match.odds} homeTeam={match.home_team} awayTeam={match.away_team} highlighted={signal.predicted_side} />
+    <OddsHistory match={match} now={now} />
   </article>;
 }
 
 function MatchCard({ match, now }: { match: Match; now: number }) {
   const kickoff = formatKickoff(match.kickoff);
   return <article className="match-card">
-    <div className="match-info"><div className="league-label"><LeagueMark league={match.league} /><span>{leagueMeta[match.league].name}</span></div><h3>{match.home_team} <span>vs</span> {match.away_team}</h3><div className="kickoff-line"><CalendarDays size={14} /> {kickoff.date}<span className="line-divider" /><Clock3 size={14} /> {kickoff.time}</div></div>
-    <div className="match-odds"><OddsRow odds={match.odds} /></div>
+    <div className="match-info"><div className="league-label"><LeagueMark league={match.league} /><span>{leagueMeta[match.league].name}</span></div><h3>{match.home_team} <span>vs</span> {match.away_team}</h3><div className="kickoff-line"><CalendarDays size={14} /> {kickoff.date}<span className="line-divider" /><Clock3 size={14} /> {kickoff.time}<MatchCountdown kickoff={match.kickoff} now={now} /></div></div>
+    <div className="match-odds"><OddsRow odds={match.odds} homeTeam={match.home_team} awayTeam={match.away_team} /></div>
     <div className="match-status"><SignalBadge signal={match.signal} />{match.odds && <span className="updated-time">Updated {relativeTime(match.odds.captured_at, now)}</span>}</div>
   </article>;
 }
@@ -136,7 +244,7 @@ export function Dashboard() {
   useEffect(() => {
     const initialTimer = window.setTimeout(() => void fetchMatches(), 0);
     const refreshTimer = window.setInterval(() => void fetchMatches(), REFRESH_INTERVAL);
-    const clockTimer = window.setInterval(() => setNow(Date.now()), 30_000);
+    const clockTimer = window.setInterval(() => setNow(Date.now()), 1_000);
     return () => { window.clearTimeout(initialTimer); window.clearInterval(refreshTimer); window.clearInterval(clockTimer); };
   }, [fetchMatches]);
 
@@ -159,7 +267,7 @@ export function Dashboard() {
           {signals.length > 0 ? <div className="signal-grid">{signals.map((match) => <SignalCard key={match.id} match={match} now={now} />)}</div> : <div className="empty-state"><Activity size={20} /><div><strong>No active signals</strong><span>There are no matches triggering the rule in this league.</span></div></div>}
         </section>
         <section className="content-section upcoming-section">
-          <div className="section-heading"><div><span className="section-kicker">Upcoming schedule</span><h2>All other matches</h2><p>Current three-way moneylines for the next {data?.upcoming_days ?? 7} days.</p></div><div className="section-count">{upcoming.length} matches</div></div>
+          <div className="section-heading"><div><span className="section-kicker">Upcoming schedule</span><h2>All other matches</h2><p>Current three-way moneylines for the next 3 days.</p></div><div className="section-count">{upcoming.length} matches</div></div>
           <div className="matches-list">{upcoming.map((match) => <MatchCard key={match.id} match={match} now={now} />)}</div>
           {upcoming.length === 0 && <div className="empty-state"><CalendarDays size={20} /><strong>No upcoming matches in this league.</strong></div>}
         </section>
