@@ -1,4 +1,10 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Sports Signals is a responsive pregame odds dashboard for Premier League, La Liga, Champions League, NFL, and MLB.
+
+The main dashboard requests `/api/odds/pregame/?sport=…&league=…`, proxied to the existing `NEXT_PUBLIC_API_BASE_URL`. Each response supplies the complete feed window; events are grouped by local start date. League selection is stored in the URL and session storage. Refreshes run every 60 seconds, with a refresh button and pull-to-refresh on touch devices.
+
+The original soccer dashboard remains at `/soccer`, using the unchanged `/api/pregame` and `/api/history/[espnEventId]` contracts. Signal trigger fields are available in every build; raw context JSON is development-only.
+
+Run `npm test` for feed, card-rendering, proxy, and request cancellation tests, `npm run lint` for lint, and `npm run build` for production validation. In environments that block Turbopack's local worker port, use `npm run build -- --webpack`.
 
 ## Getting Started
 
@@ -16,9 +22,7 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The main screen is `src/app/ui/dashboard.tsx`, event cards are in `src/app/ui/odds-event-card.tsx`, and response types and feed utilities are in `src/lib/odds.ts`.
 
 ## Learn More
 

@@ -52,6 +52,7 @@ button { font:inherit; }
 .league-mark { display:grid; place-items:center; width:22px; height:22px; border-radius:6px; color:white; font-size:8px; font-weight:850; letter-spacing:0; }
 .league-epl { background:#3b1b4d; }
 .league-laliga { background:#d7512d; }
+.league-ucl { background:#192a78; }
 .status-badge { gap:5px; width:fit-content; white-space:nowrap; border-radius:999px; font-size:9px; line-height:1; padding:6px 8px; font-weight:780; text-transform:uppercase; letter-spacing:.06em; }
 .status-active { background:var(--signal-soft); color:#2d5b36; border:1px solid #d8eeae; }
 .status-quiet { background:#f1f3f1; color:#758078; border:1px solid #e3e8e4; }
@@ -150,7 +151,8 @@ footer { justify-content:center; gap:10px; padding-top:10px; color:#949d96; font
   .refresh-button span { display:none; }
   .refresh-button { width:38px; padding:0; justify-content:center; }
   .toolbar { align-items:flex-end; padding:18px 0 30px; }
-  .filter-shell { width:100%; }
+  .filter-shell { width:100%; overflow-x:auto; scrollbar-width:none; }
+  .filter-shell::-webkit-scrollbar { display:none; }
   .filter-shell button { flex:1; min-width:0; padding:9px 4px; font-size:10px; white-space:nowrap; }
   .filter-shell button:first-child { flex:.82; }
   .refresh-meta { display:none; }
@@ -173,3 +175,46 @@ footer { justify-content:center; gap:10px; padding-top:10px; color:#949d96; font
   footer { flex-wrap:wrap; line-height:1.6; }
 }
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; } }
+
+/* Cross-sport cards reuse the dashboard palette, spacing and expansion controls. */
+.league-soccer { background:#192a78; }
+.league-football { background:#85452f; }
+.league-baseball { background:#295878; }
+.day-heading { display:flex; align-items:center; justify-content:space-between; margin:26px 0 14px; }
+.day-heading h2 { margin:0; font-size:17px; letter-spacing:-.02em; }
+.day-heading > span,.context-note,.market-caption,.quiet-signals { color:var(--muted); font-size:11px; line-height:1.6; }
+.odds-event-card h4 { font-size:11px; margin:16px 0 8px; }
+.event-signal { margin-top:14px; padding:12px; border:1px solid #d8eeae; border-radius:10px; background:#fbfff3; }
+.signal-summary { display:flex; align-items:center; flex-wrap:wrap; gap:7px; color:var(--forest); font-size:12px; }
+.predicted-team { border-radius:5px; padding:4px 7px; background:var(--signal-soft); font-weight:700; }
+.market-caption { margin:6px 0; }
+.trigger-fields { margin:12px 0; font-size:11px; line-height:1.5; }
+.trigger-fields > div { display:grid; grid-template-columns:minmax(100px,1fr) minmax(0,2fr); gap:12px; border-bottom:1px solid var(--soft-line); padding:7px 0; }
+.trigger-fields dt { color:var(--muted); }
+.trigger-fields dd { margin:0; overflow-wrap:anywhere; }
+.raw-context { font-size:11px; }
+.raw-context summary { cursor:pointer; }
+.raw-context pre { max-width:100%; overflow:auto; padding:10px; background:#f1f3ee; }
+.additional-market { border-top:1px solid var(--soft-line); margin-top:12px; }
+.market-pair,.pitcher-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.market-pair > span { font-size:10px; color:var(--muted); overflow-wrap:anywhere; }
+.market-pair strong { display:block; color:var(--ink); font-size:14px; margin-top:4px; }
+.market-pair small { font-weight:400; color:var(--muted); }
+.pitcher-card { display:flex; flex-direction:column; gap:5px; padding:12px; border:1px solid var(--soft-line); border-radius:10px; font-size:10px; color:var(--muted); }
+.pitcher-card strong { font-size:13px; color:var(--ink); margin-top:6px; }
+.context-team { font-weight:700; color:var(--forest); }
+.mlb-context { border-top:1px solid var(--soft-line); margin-top:16px; }
+.injury-list { padding-left:16px; font-size:11px; color:var(--muted); line-height:1.5; }
+.injury-list li { margin-bottom:10px; }
+.injury-list span { display:block; }
+.odds-state,.signal-exclusions { margin-top:14px; padding:10px; border-radius:8px; background:#fff8eb; color:#825d20; font-size:11px; line-height:1.5; }
+.odds-state button { margin-left:8px; background:none; border:0; text-decoration:underline; color:inherit; cursor:pointer; }
+.signal-exclusions p { margin-bottom:0; }
+.pull-status { text-align:center; color:var(--green); font-size:12px; }
+.legacy-link { display:block; padding:12px 24px; color:var(--forest); font-size:12px; }
+footer a { color:var(--green); }
+button:focus-visible,summary:focus-visible,a:focus-visible { outline:2px solid var(--green); outline-offset:3px; }
+@media (max-width:600px) { .filter-shell button:first-child { flex:1.8; } .card-topline { gap:8px; } .league-label { font-size:9px; } }
+.odds-league-filter { min-width:0; overflow-x:auto; }
+.odds-league-filter button,.odds-league-filter button:first-child { flex:0 0 auto; white-space:nowrap; }
+@media (max-width:600px) { .odds-league-filter button { padding:9px 12px; } }
