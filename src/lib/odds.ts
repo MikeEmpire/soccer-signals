@@ -10,22 +10,44 @@ export const ODDS_LEAGUES = [
 export type OddsLeague = typeof ODDS_LEAGUES[number];
 
 export interface OddsSnapshot {
+  open_home_ml?: number | null; open_draw_ml?: number | null; open_away_ml?: number | null;
   home_ml?: number | null; draw_ml?: number | null; away_ml?: number | null;
   total_line?: number | null; over_ml?: number | null; under_ml?: number | null;
   home_spread?: number | null; home_spread_ml?: number | null;
   away_spread?: number | null; away_spread_ml?: number | null;
   source?: "scoreboard" | "summary_pickcenter" | null;
   source_event_state?: "pre" | "in" | "post" | null;
-  is_backfill?: boolean | null; line_phase?: "current" | "archived" | null;
+  is_backfill?: boolean | null; line_phase?: "opening" | "current" | "archived" | null;
   captured_at?: string | null;
 }
 export interface OddsSignal {
   rule: string; type: string; matched: boolean; market: string; prediction: string;
   predicted_side: string | null; confidence?: string | null;
+  tier?: "primary" | "alternate" | "secondary" | null;
+  label?: string | null;
+  strength?: "standard" | "weak" | null;
   reason?: string | null; description?: string | null;
   threshold?: JsonValue; observed_value?: JsonValue; context?: { [key: string]: JsonValue } | null;
 }
 export interface SignalExclusion { rule: string; description: string }
+export interface MarketOutlook {
+  home_implied_probability?: number | null;
+  away_implied_probability?: number | null;
+  favored_side?: "home" | "away" | null;
+  captured_at?: string | null;
+}
+export interface BettingSplitSide {
+  odds?: number | null; bet_pct?: number | null; handle_pct?: number | null;
+  valid?: boolean | null; money_differential?: number | null;
+  bet_pct_change?: number | null; handle_pct_change?: number | null;
+}
+export interface BettingSplits {
+  status?: "fresh" | "unavailable" | "stale" | "invalid_moneyline" | "disabled" | string | null;
+  signal_eligible?: boolean | null;
+  moneyline?: Sides<BettingSplitSide> | null;
+  last_checked_at?: string | null; captured_at?: string | null;
+  max_age_seconds?: number | null; age_seconds?: number | null;
+}
 export interface StartingPitcher {
   player_id?: number | null; espn_player_id?: number | string | null;
   name?: string | null; headshot_url?: string | null; record?: string | null;
@@ -57,6 +79,8 @@ export interface OddsEvent {
   odds?: OddsSnapshot | null; signal_count: number; signals: OddsSignal[];
   signal?: OddsSignal | null; signal_exclusions?: SignalExclusion[] | null;
   matchup_context?: MLBMatchupContext | null;
+  market_outlook?: MarketOutlook | null;
+  betting_splits?: BettingSplits | null;
 }
 export interface OddsFeedResponse {
   count: number; signal_count: number; upcoming_days: number;
@@ -76,11 +100,32 @@ export function formatValue(value: JsonValue | undefined): string {
   if (typeof value === "object") return Object.entries(value).map(([key, item]) => `${readable(key)}: ${formatValue(item)}`).join(" · ") || "—";
   return String(value);
 }
-export function predictedTeam(event: OddsEvent, side: string | null) {
+export function predictedTeam(event: Pick<OddsEvent, "home_team" | "away_team">, side: string | null) {
   return side === "home" ? event.home_team : side === "away" ? event.away_team : side ? readable(side) : "—";
 }
+export const SIGNAL_RULE_LABELS: Record<string, string> = {
+  mlb_market_implied_win_probability: "Market-implied probability ≥60%",
+  both_moneylines_unchanged_favorite: "Unchanged opening moneylines",
+  opening_to_current_movement_weak_favorite: "Small line movement — weak favorite support",
+  mlb_betting_money_support: "Money supports this team",
+  mlb_public_bets_underdog_moneyline_move: "Public bets / opposing line movement",
+  mlb_losing_record_favorable_runline: "Below .500 — +1.5 run-line support",
+};
+export function signalRuleLabel(signal: OddsSignal) {
+  return signal.label?.trim() || SIGNAL_RULE_LABELS[signal.rule] || readable(signal.rule || signal.description || signal.reason || "signal");
+}
+export function percentage(value: number | null | undefined, digits = 0) {
+  return value == null || !Number.isFinite(value) ? "—" : `${value.toFixed(digits)}%`;
+}
+export function probabilityPercentage(value: number | null | undefined) {
+  return value == null || !Number.isFinite(value) ? "—" : `${(value * 100).toFixed(1)}%`;
+}
+export function percentagePoints(value: number | null | undefined) {
+  if (value == null || !Number.isFinite(value)) return "—";
+  return `${value > 0 ? "+" : ""}${value} pp`;
+}
 export function moneyline(value: number | null | undefined) {
-  return value == null ? "—" : value > 0 ? `+${value}` : String(value);
+  return value == null || !Number.isFinite(value) ? "—" : value > 0 ? `+${value}` : String(value);
 }
 export function localDateKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;

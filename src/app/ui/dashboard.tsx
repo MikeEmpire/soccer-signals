@@ -6,7 +6,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createFeedLoader, groupEvents, ODDS_LEAGUES, type OddsFeedResponse, type OddsLeague } from "../../lib/odds";
 import { OddsEventCard } from "./odds-event-card";
 
-export function Dashboard() {
+const SOCCER_LEAGUES = ODDS_LEAGUES.filter(league => league.sport === "soccer");
+
+export function Dashboard({ soccerOnly = false }: { soccerOnly?: boolean }) {
+  const leagues = soccerOnly ? SOCCER_LEAGUES : ODDS_LEAGUES;
   const [selected, setSelected] = useState<OddsLeague>(ODDS_LEAGUES[0]);
   const [ready, setReady] = useState(false);
   const [data, setData] = useState<OddsFeedResponse | null>(null);
@@ -15,10 +18,13 @@ export function Dashboard() {
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [pullDistance, setPullDistance] = useState(0);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const inFlight = useRef(false);
+  const cache = useRef(new Map<string, { feed: OddsFeedResponse; refreshedAt: Date }>());
   const [loader] = useState(() => createFeedLoader());
 
   const changeLeague = useCallback((league: OddsLeague) => {
-    loader.cancel(); setSelected(league); setData(null); setError(null); setLastRefresh(null); setRefreshing(true);
+    const cached = cache.current.get(league.key);
+    loader.cancel(); inFlight.current = false; setSelected(league); setData(cached?.feed ?? null); setError(null); setLastRefresh(cached?.refreshedAt ?? null); setRefreshing(true);
   }, [loader]);
 
   useEffect(() => {
@@ -27,24 +33,28 @@ export function Dashboard() {
       if (!key) {
         try { key = window.sessionStorage.getItem("odds-league"); } catch { /* URL navigation still works when storage is disabled. */ }
       }
-      changeLeague(ODDS_LEAGUES.find((league) => league.key === key) ?? ODDS_LEAGUES[0]);
+      changeLeague(leagues.find((league) => league.key === key) ?? ODDS_LEAGUES[0]);
       setReady(true);
     };
     const timer = window.setTimeout(restore, 0);
     window.addEventListener("popstate", restore);
     return () => { window.clearTimeout(timer); window.removeEventListener("popstate", restore); };
-  }, [changeLeague]);
+  }, [changeLeague, leagues]);
 
   const refresh = useCallback(() => {
+    if (inFlight.current || document.visibilityState === "hidden") return;
+    inFlight.current = true;
     setRefreshing(true);
-    void loader.load(selected, (feed) => { setData(feed); setError(null); setLastRefresh(new Date()); }, setError, () => setRefreshing(false));
+    void loader.load(selected, (feed) => { const refreshedAt = new Date(); cache.current.set(selected.key, { feed, refreshedAt }); setData(feed); setError(null); setLastRefresh(refreshedAt); }, setError, () => { inFlight.current = false; setRefreshing(false); });
   }, [loader, selected]);
 
   useEffect(() => {
     if (!ready) return;
     const initial = window.setTimeout(refresh, 0);
-    const interval = window.setInterval(refresh, 60_000);
-    return () => { window.clearTimeout(initial); window.clearInterval(interval); loader.cancel(); };
+    const interval = window.setInterval(refresh, 5 * 60_000);
+    const onVisibilityChange = () => { if (document.visibilityState === "visible") refresh(); };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => { window.clearTimeout(initial); window.clearInterval(interval); document.removeEventListener("visibilitychange", onVisibilityChange); loader.cancel(); inFlight.current = false; };
   }, [loader, ready, refresh]);
 
   const groups = groupEvents(data?.events ?? []);
@@ -58,7 +68,7 @@ export function Dashboard() {
     <div className="ambient ambient-one" /><div className="ambient ambient-two" />
     <div className="dashboard-container">
       <header className="site-header"><div className="brand-block"><div className="brand-icon"><Shield size={20} /></div><div><div className="eyebrow">Sports Signals</div><h1>Pregame Odds Monitor</h1></div></div><div className="header-actions"><div className="live-count"><span className="live-dot" /><strong>{data?.count ?? 0}</strong> upcoming events</div><button className="refresh-button" type="button" disabled={refreshing || !ready} onClick={refresh} aria-label="Refresh odds"><RefreshCw size={16} className={refreshing ? "is-spinning" : ""} /><span>Refresh</span></button></div></header>
-      <div className="toolbar"><nav className="filter-shell odds-league-filter" aria-label="Odds leagues">{ODDS_LEAGUES.map((league) => <button type="button" key={league.key} aria-pressed={selected.key === league.key} className={selected.key === league.key ? "filter-active" : ""} onClick={() => {
+      <div className="toolbar"><nav className="filter-shell odds-league-filter" aria-label="Odds leagues">{leagues.map((league) => <button type="button" key={league.key} aria-pressed={selected.key === league.key} className={selected.key === league.key ? "filter-active" : ""} onClick={() => {
         if (league.key === selected.key) return;
         const url = new URL(window.location.href); url.searchParams.set("league", league.key); window.history.pushState(null, "", url);
         try { window.sessionStorage.setItem("odds-league", league.key); } catch { /* Selection remains in the URL. */ }
@@ -70,9 +80,9 @@ export function Dashboard() {
       <div aria-busy={refreshing}>
         {!data && refreshing && <div className="loading-grid" role="status" aria-label="Loading events">{[0, 1].map((item) => <div className="loading-card" key={item}><div className="skeleton skeleton-small" /><div className="skeleton skeleton-title" /><div className="skeleton skeleton-odds" /></div>)}</div>}
         {data && groups.length === 0 && <div className="empty-state"><Activity size={20} /><div><strong>No upcoming events</strong><span>No events are available for {selected.label} in this feed window.</span></div></div>}
-        {groups.map((group) => <section className="content-section day-section" key={group.key}><div className="day-heading"><h2>{group.label}</h2><span>{group.events.length} events</span></div><div className="signal-grid">{group.events.map((event) => <OddsEventCard key={`${event.provider ?? "event"}-${event.id}`} event={event} onRetry={refresh} refreshing={refreshing} />)}</div></section>)}
+        {groups.map((group) => <section className="content-section day-section" key={group.key}><div className="day-heading"><h2>{group.label}</h2><span>{group.events.length} events</span></div><div className="signal-grid">{group.events.map((event) => <OddsEventCard key={`${event.provider ?? "event"}-${event.id}`} event={event} onRetry={refresh} refreshing={refreshing} dataOutdated={Boolean(error)} />)}</div></section>)}
       </div>
-      <footer><span>Auto-refreshes every 60 seconds</span><span className="footer-divider" /><span>Times shown in your local timezone</span><Link href="/soccer">Soccer monitor & history</Link></footer>
+      <footer><span>Auto-refreshes every 5 minutes while visible</span><span className="footer-divider" /><span>Times shown in your local timezone</span><Link href="/soccer">Soccer monitor & history</Link></footer>
     </div>
   </main>;
 }

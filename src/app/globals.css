@@ -185,8 +185,10 @@ footer { justify-content:center; gap:10px; padding-top:10px; color:#949d96; font
 .day-heading > span,.context-note,.market-caption,.quiet-signals { color:var(--muted); font-size:11px; line-height:1.6; }
 .odds-event-card h4 { font-size:11px; margin:16px 0 8px; }
 .event-signal { margin-top:14px; padding:12px; border:1px solid #d8eeae; border-radius:10px; background:#fbfff3; }
+.event-signal-weak { border-color:#e5d5ad; background:#fffcf4; }
 .signal-summary { display:flex; align-items:center; flex-wrap:wrap; gap:7px; color:var(--forest); font-size:12px; }
 .predicted-team { border-radius:5px; padding:4px 7px; background:var(--signal-soft); font-weight:700; }
+.weak-label { padding:4px 7px; border-radius:999px; background:#fff1d6; color:#8b621f; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; }
 .market-caption { margin:6px 0; }
 .trigger-fields { margin:12px 0; font-size:11px; line-height:1.5; }
 .trigger-fields > div { display:grid; grid-template-columns:minmax(100px,1fr) minmax(0,2fr); gap:12px; border-bottom:1px solid var(--soft-line); padding:7px 0; }
@@ -195,6 +197,8 @@ footer { justify-content:center; gap:10px; padding-top:10px; color:#949d96; font
 .raw-context { font-size:11px; }
 .raw-context summary { cursor:pointer; }
 .raw-context pre { max-width:100%; overflow:auto; padding:10px; background:#f1f3ee; }
+.signal-evidence { margin-top:10px; padding:10px 11px 2px; border-radius:8px; background:#f4f7f2; color:#4a5b50; font-size:10px; }
+.signal-evidence .trigger-fields { margin-top:5px; }
 .additional-market { border-top:1px solid var(--soft-line); margin-top:12px; }
 .market-pair,.pitcher-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
 .market-pair > span { font-size:10px; color:var(--muted); overflow-wrap:anywhere; }
@@ -204,6 +208,27 @@ footer { justify-content:center; gap:10px; padding-top:10px; color:#949d96; font
 .pitcher-card strong { font-size:13px; color:var(--ink); margin-top:6px; }
 .context-team { font-weight:700; color:var(--forest); }
 .mlb-context { border-top:1px solid var(--soft-line); margin-top:16px; }
+.market-outlook { margin-top:14px; padding:11px; border:1px solid var(--soft-line); border-radius:10px; background:#fafbf9; }
+.market-outlook h4 { margin:0 0 4px; }
+.market-outlook p,.split-legend,.split-timestamp,.split-state { margin:0; color:var(--muted); font-size:9px; line-height:1.5; }
+.probability-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:10px; }
+.probability-grid div { display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:0; }
+.probability-grid span { color:var(--muted); font-size:10px; overflow-wrap:anywhere; }
+.probability-grid strong { font:650 15px/1 var(--font-geist-mono); }
+.betting-splits > summary { flex-wrap:wrap; }
+.split-source { color:#819087; font-weight:500; }
+.betting-splits summary .status-badge { margin-left:auto; }
+.split-table { margin-top:9px; border:1px solid var(--soft-line); border-radius:8px; overflow:hidden; }
+.split-row { display:grid; grid-template-columns:minmax(90px,1.7fr) repeat(3,minmax(48px,1fr)); align-items:center; gap:6px; padding:8px; border-top:1px solid var(--soft-line); font:500 10px/1.3 var(--font-geist-mono); }
+.split-row:first-child { border-top:0; }
+.split-row strong { min-width:0; overflow-wrap:anywhere; font-family:Arial,Helvetica,sans-serif; }
+.split-row span { text-align:right; }
+.split-row small { display:block; margin-top:2px; color:#849088; font-size:7px; }
+.split-header { color:var(--muted); background:#f6f8f5; font-size:8px; text-transform:uppercase; letter-spacing:.04em; }
+.split-eligible { display:inline-flex; margin:9px 0 0; padding:4px 7px; border-radius:999px; background:#eef8dc; color:#3f6748; font-size:8px; font-weight:750; text-transform:uppercase; }
+.split-state { margin-top:10px; padding:10px; background:#f6f8f5; border-radius:8px; }
+.split-timestamp { margin-top:8px; }
+.cached-warning { margin:10px 0 -8px; color:#8c6226; font-size:10px; font-weight:650; }
 .injury-list { padding-left:16px; font-size:11px; color:var(--muted); line-height:1.5; }
 .injury-list li { margin-bottom:10px; }
 .injury-list span { display:block; }
@@ -218,3 +243,31 @@ button:focus-visible,summary:focus-visible,a:focus-visible { outline:2px solid v
 .odds-league-filter { min-width:0; overflow-x:auto; }
 .odds-league-filter button,.odds-league-filter button:first-child { flex:0 0 auto; white-space:nowrap; }
 @media (max-width:600px) { .odds-league-filter button { padding:9px 12px; } }
+
+.moneyline-comparison { display:flex; flex-wrap:wrap; gap:10px 16px; margin-top:8px; }
+.moneyline-comparison > div { display:flex; flex-direction:column; gap:6px; }
+.moneyline-comparison span { color:#66736b; font-size:10px; }
+.moneyline-comparison strong { color:#35483b; font:650 16px/1.2 var(--font-geist-mono); }
+.moneyline-comparison .odds-value { margin:0; color:#213c2b; }
+.history-table-scroll { max-width:100%; overflow-x:auto; margin:12px 0; }
+.history-table-scroll:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
+.odds-history-table { width:100%; border-collapse:collapse; font-size:11px; text-align:left; }
+.odds-history-table caption { text-align:left; padding-bottom:8px; font-weight:650; }
+.odds-history-table th,.odds-history-table td { padding:10px 8px; border-bottom:1px solid var(--soft-line); vertical-align:top; min-width:100px; }
+.odds-history-table th { font-weight:600; }
+.odds-history-table small { display:block; margin-top:5px; color:#66736b; font-size:10px; font-weight:400; }
+.odds-history-table strong { font-family:var(--font-geist-mono); }
+.history-refresh { border:1px solid var(--soft-line); border-radius:6px; background:#f6f8f5; color:#35483b; padding:8px 12px; cursor:pointer; font-size:11px; }
+.history-refresh:disabled { opacity:.6; cursor:wait; }
+
+/* Backend signal tiers remain visible without filtering simultaneous matches. */
+.signal-tier { display:inline-flex; padding:3px 7px; border-radius:999px; font-size:10px; font-weight:750; letter-spacing:.03em; }
+.signal-tier-primary { color:#205236; background:#e1f2d5; }
+.signal-tier-alternate { color:#563e80; background:#ece4f7; }
+.signal-tier-secondary { color:#4b5863; background:#e8edf0; }
+.event-signal-alternate { background:#fcfaff; border-color:#ddd1ee; }
+.event-signal-secondary { background:#f8fafb; border-color:#dce2e6; }
+.signal-summary strong,.signal-evidence dd { overflow-wrap:anywhere; min-width:0; }
+.history-signals { white-space:normal; }
+.history-signals > .signal-dropdown { margin:0; border:0; }
+.history-signals .event-signal { text-align:left; }
