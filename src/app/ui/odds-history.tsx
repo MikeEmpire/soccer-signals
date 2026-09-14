@@ -6,13 +6,34 @@ import { Fragment, useCallback, useEffect, useState, useSyncExternalStore } from
 import { moneyline, readable } from "../../lib/odds";
 import { formatMovement, historyStore, historyUrl, HISTORY_MAX_AGE, precedingSnapshot, type HistoryData, type HistoryEvent, type HistoryState } from "../../lib/odds-history";
 
+function relativeTime(isoString: string): string {
+  const diff = Date.now() - new Date(isoString).getTime();
+  if (!Number.isFinite(diff) || diff < 0) return new Date(isoString).toLocaleString();
+  const seconds = Math.floor(diff / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} ${minutes === 1 ? "minute" : "minutes"} ago`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  if (hours < 24) {
+    return remainingMinutes === 0
+      ? `${hours} ${hours === 1 ? "hour" : "hours"} ago`
+      : `${hours} ${hours === 1 ? "hour" : "hours"} ${remainingMinutes} ${remainingMinutes === 1 ? "minute" : "minutes"} ago`;
+  }
+  const days = Math.floor(hours / 24);
+  const remainingHours = hours % 24;
+  return remainingHours === 0
+    ? `${days} ${days === 1 ? "day" : "days"} ago`
+    : `${days} ${days === 1 ? "day" : "days"} ${remainingHours} ${remainingHours === 1 ? "hour" : "hours"} ago`;
+}
+
 export function HistoryTable({ data, event }: { data: HistoryData; event: HistoryEvent & { away_team: string; home_team: string } }) {
   const sides = [{ key: "away_ml", label: event.away_team }, ...(event.sport === "soccer" ? [{ key: "draw_ml", label: "Draw" }] : []), { key: "home_ml", label: event.home_team }] as { key: "away_ml" | "draw_ml" | "home_ml"; label: string }[];
   if (!data.history.length) return <p className="history-empty">No odds snapshots have been recorded yet.</p>;
   return <><p className="context-note">Oldest first · Times are local. Movement is current minus preceding moneyline for the same sportsbook. Positive means longer odds and negative means shorter odds within the same sign; crossing even money is labeled separately. Movement does not indicate a favorable bet. Simultaneous captures, phase changes, and nonstandard prices have no calculated movement.</p>
     <div className="history-table-scroll" tabIndex={0} role="region" aria-label="Chronological odds snapshots"><table className="odds-history-table"><caption>Sportsbook moneyline snapshots</caption><thead><tr><th scope="col">Captured / sportsbook</th><th scope="col">Line phase</th>{sides.map(side => <th scope="col" key={side.key}>{side.label}<small>Moneyline / movement</small></th>)}</tr></thead><tbody>{data.history.map((row, index) => {
       const previous = precedingSnapshot(data.history, index);
-      return <Fragment key={`${row.provider_id}:${row.snapshot_id}`}><tr><th scope="row"><time dateTime={row.captured_at}>{new Date(row.captured_at).toLocaleString()}</time><small>{row.provider_name}{row.is_backfill ? " · Backfill" : ""}</small></th><td>{row.line_phase ? readable(row.line_phase) : "—"}</td>{sides.map(side => <td key={side.key}><strong>{moneyline(row[side.key])}</strong><small>{formatMovement(row[side.key], previous?.[side.key])}</small></td>)}</tr>{event.sport === "soccer" && <tr><td colSpan={sides.length + 2} className="history-signals"><details className="signal-dropdown"><summary>Signals at this snapshot{row.signal_count != null ? ` · ${row.signal_count}` : ""}<ChevronDown size={14} /></summary>
+      return <Fragment key={`${row.provider_id}:${row.snapshot_id}`}><tr><th scope="row"><time dateTime={row.captured_at}>{relativeTime(row.captured_at)}</time><small>{row.provider_name}{row.is_backfill ? " · Backfill" : ""}</small></th><td>{row.line_phase ? readable(row.line_phase) : "—"}</td>{sides.map(side => <td key={side.key}><strong>{moneyline(row[side.key])}</strong><small>{formatMovement(row[side.key], previous?.[side.key])}</small></td>)}</tr>{event.sport === "soccer" && <tr><td colSpan={sides.length + 2} className="history-signals"><details className="signal-dropdown"><summary>Signals at this snapshot{row.signal_count != null ? ` · ${row.signal_count}` : ""}<ChevronDown size={14} /></summary>
         {row.signals === undefined ? <p className="context-note">Signal history unavailable.</p> : row.signals.length === 0 ? <p className="context-note">No signals at this snapshot.</p> : row.signals.map((signal, signalIndex) => <SignalDetails key={`${signal.rule}:${signalIndex}`} event={event} signal={signal} />)}
       </details></td></tr>}</Fragment>;
     })}</tbody></table></div></>;

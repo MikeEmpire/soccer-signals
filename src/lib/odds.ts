@@ -15,6 +15,8 @@ export interface OddsSnapshot {
   total_line?: number | null; over_ml?: number | null; under_ml?: number | null;
   home_spread?: number | null; home_spread_ml?: number | null;
   away_spread?: number | null; away_spread_ml?: number | null;
+  open_home_spread?: number | null; open_home_spread_ml?: number | null;
+  open_away_spread?: number | null; open_away_spread_ml?: number | null;
   source?: "scoreboard" | "summary_pickcenter" | null;
   source_event_state?: "pre" | "in" | "post" | null;
   is_backfill?: boolean | null; line_phase?: "opening" | "current" | "archived" | null;
@@ -40,13 +42,24 @@ export interface BettingSplitSide {
   odds?: number | null; bet_pct?: number | null; handle_pct?: number | null;
   valid?: boolean | null; money_differential?: number | null;
   bet_pct_change?: number | null; handle_pct_change?: number | null;
+  money_differential_change?: number | null;
+  implied_probability_change?: number | null;
+  line_movement_supports_side?: boolean | null;
 }
+export interface BettingSpreadSide extends BettingSplitSide {
+  line?: number | null;
+}
+export interface BettingTotalSide extends BettingSplitSide {}
 export interface BettingSplits {
   status?: "fresh" | "unavailable" | "stale" | "invalid_moneyline" | "disabled" | string | null;
+  source?: string | null; sportsbook?: string | null;
   signal_eligible?: boolean | null;
   moneyline?: Sides<BettingSplitSide> | null;
-  last_checked_at?: string | null; captured_at?: string | null;
+  spread?: Sides<BettingSpreadSide> | null;
+  total?: { line?: number | null; valid?: boolean | null; over?: BettingTotalSide | null; under?: BettingTotalSide | null } | null;
+  last_checked_at?: string | null; captured_at?: string | null; previous_captured_at?: string | null;
   max_age_seconds?: number | null; age_seconds?: number | null;
+  matched_event_id?: number | null;
 }
 export interface StartingPitcher {
   player_id?: number | null; espn_player_id?: number | string | null;

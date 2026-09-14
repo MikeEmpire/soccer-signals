@@ -25,7 +25,7 @@ function BettingSplitsPanel({ event }: { event: OddsEvent }) {
     : status === "invalid_moneyline" ? "Moneyline splits are incomplete or invalid."
     : status === "disabled" ? "Betting splits are currently disabled."
     : !hasValues ? "Betting splits are not available for this game yet." : null;
-  return <details className="betting-splits signal-dropdown"><summary>Betting splits <span className="split-source">VSiN · DraftKings</span>{status === "stale" && <span className="status-badge status-unavailable">Out of date</span>}<ChevronDown className="dropdown-chevron" size={14} /></summary>
+  return <details open className="betting-splits signal-dropdown"><summary>Betting splits <span className="split-source">VSiN · DraftKings</span>{status === "stale" && <span className="status-badge status-unavailable">Out of date</span>}<ChevronDown className="dropdown-chevron" size={14} /></summary>
     {message ? <p className="split-state">{message}</p> : <><div className="split-legend">Bets = share of tickets · Money = share of wagered dollars</div><div className="split-table">
       <div className="split-row split-header"><strong>Team</strong><span>Bets</span><span>Money</span><span>Money − Bets</span></div>
       <SplitRow team={event.away_team} split={splits?.moneyline?.away} /><SplitRow team={event.home_team} split={splits?.moneyline?.home} />
@@ -64,7 +64,7 @@ export function OddsEventCard({ event, onRetry, refreshing = false, dataOutdated
     <div className="kickoff-line"><CalendarDays size={14} />{Number.isNaN(start.getTime()) ? "Start time TBD" : <time dateTime={event.start_time}>{start.toLocaleString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</time>}</div>
     {(status !== "available" || !odds) && <div className="odds-state" role="status">{status === "error" ? "Couldn’t load odds." : status === "unavailable" ? "Odds unavailable." : "Odds pending."}{event.odds_status_reason && <span> {event.odds_status_reason}</span>}{status === "error" && <button type="button" disabled={refreshing} onClick={onRetry}>Retry odds</button>}</div>}
     <div className="odds-row" style={{ gridTemplateColumns: `repeat(${prices.length}, minmax(0, 1fr))` }}>{prices.map((price) => <div className="odds-cell" key={price.side}><div className="odds-label">{price.label}</div><div className="moneyline-comparison"><div><span>Opening</span><strong>{moneyline(price.opening)}</strong></div><div><span>Current</span><strong className="odds-value">{moneyline(price.value)}</strong></div></div></div>)}</div>
-    {odds && (odds.away_spread != null || odds.home_spread != null) && <div className="additional-market"><h4>{event.sport === "baseball" ? "Run line" : "Spread"}</h4><div className="market-pair"><span>{event.away_team}<strong>{moneyline(odds.away_spread)} <small>({moneyline(odds.away_spread_ml)})</small></strong></span><span>{event.home_team}<strong>{moneyline(odds.home_spread)} <small>({moneyline(odds.home_spread_ml)})</small></strong></span></div></div>}
+    {odds && (odds.away_spread != null || odds.home_spread != null) && <div className="additional-market"><h4>{event.sport === "baseball" ? "Run line" : "Spread"}</h4><div className="market-pair"><span>{event.away_team}<div className="moneyline-comparison"><div><span>Opening</span><strong>{moneyline(odds.open_away_spread)} <small>({moneyline(odds.open_away_spread_ml)})</small></strong></div><div><span>Current</span><strong>{moneyline(odds.away_spread)} <small>({moneyline(odds.away_spread_ml)})</small></strong></div></div></span><span>{event.home_team}<div className="moneyline-comparison"><div><span>Opening</span><strong>{moneyline(odds.open_home_spread)} <small>({moneyline(odds.open_home_spread_ml)})</small></strong></div><div><span>Current</span><strong>{moneyline(odds.home_spread)} <small>({moneyline(odds.home_spread_ml)})</small></strong></div></div></span></div></div>}
     {odds?.total_line != null && <div className="additional-market"><h4>Total {odds.total_line}</h4><div className="market-pair"><span>Over<strong>{moneyline(odds.over_ml)}</strong></span><span>Under<strong>{moneyline(odds.under_ml)}</strong></span></div></div>}
     <p className="context-note">{captured && !Number.isNaN(captured.getTime()) ? <>Odds captured <time dateTime={event.odds?.captured_at ?? undefined}>{captured.toLocaleString()}</time>{event.odds?.line_phase === "archived" && " · Archived"}{event.odds?.is_backfill && " · Backfill"}</> : "Odds freshness unavailable"}</p>
     <OddsHistory event={event} />
@@ -72,7 +72,7 @@ export function OddsEventCard({ event, onRetry, refreshing = false, dataOutdated
     {signals.map((signal, index) => <SignalDetails key={`${signal.rule}-${index}`} signal={signal} event={event} />)}
     {signals.length === 0 && exclusions.length === 0 && <p className="quiet-signals">No active signals</p>}
     {exclusions.length > 0 && <div className="signal-exclusions"><span className="status-badge status-unavailable">Filtered signal</span>{exclusions.map((exclusion, index) => <p key={`${exclusion.rule}-${index}`}>{exclusion.description}</p>)}</div>}
-    {event.sport === "baseball" && <BettingSplitsPanel event={event} />}
+    <BettingSplitsPanel event={event} />
     {event.sport === "baseball" && <MLBContext event={event} />}
   </article>;
 }
