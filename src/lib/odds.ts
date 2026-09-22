@@ -2,6 +2,7 @@ export type JsonValue = string | number | boolean | null | JsonValue[] | { [key:
 
 export const ODDS_LEAGUES = [
   { key: "champions-league", label: "Champions League", sport: "soccer", league: "uefa.champions", mark: "UCL" },
+  { key: "nations-league", label: "UEFA Nations League", sport: "soccer", league: "uefa.nations", mark: "UNL" },
   { key: "premier-league", label: "Premier League", sport: "soccer", league: "eng.1", mark: "PL" },
   { key: "la-liga", label: "La Liga", sport: "soccer", league: "esp.1", mark: "LL" },
   { key: "nfl", label: "NFL", sport: "football", league: "nfl", mark: "NFL" },

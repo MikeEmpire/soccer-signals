@@ -17,6 +17,7 @@ const leagueMeta = {
   "eng.1": { name: "Premier League", mark: "PL", className: "epl" },
   "esp.1": { name: "La Liga", mark: "LL", className: "laliga" },
   "uefa.champions": { name: "Champions League", mark: "UCL", className: "ucl" },
+  "uefa.nations": { name: "UEFA Nations League", mark: "UNL", className: "ucl" },
 } as const;
 
 function formatMoneyline(value: number | null | undefined) {
