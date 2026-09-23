@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Activity, AlertCircle, ArrowUpRight, CalendarDays, Check, ChevronDown, Clock3, RefreshCw, Shield, Timer } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -262,6 +263,7 @@ export function Dashboard() {
         <div className="brand-block"><div className="brand-icon"><Shield size={20} strokeWidth={2.2} /></div><div><div className="eyebrow">Soccer Signals</div><h1>Pregame Odds Monitor</h1></div></div>
         <div className="header-actions"><div className="live-count"><span className="live-dot" /><strong>{data?.count ?? 0}</strong> upcoming matches</div><button className="refresh-button" disabled={refreshing} onClick={() => void fetchMatches()} title="Refresh odds" type="button"><RefreshCw className={refreshing ? "is-spinning" : ""} size={16} /><span>Refresh</span></button></div>
       </header>
+      <nav className="page-nav" aria-label="Site sections"><Link href="/" className="page-nav-link">Live Odds</Link><span className="page-nav-link page-nav-active" aria-current="page">Soccer</span><Link href="/review" className="page-nav-link">Daily Review</Link></nav>
       <div className="toolbar"><LeagueFilter matches={data?.matches ?? []} onChange={setSelectedLeague} selected={selectedLeague} /><div className="refresh-meta"><Clock3 size={14} />{lastRefresh ? `Synced ${relativeTime(new Date(lastRefresh).toISOString(), now)}` : "Waiting for data"}</div></div>
       {error && <div className="error-banner" role="status"><AlertCircle size={16} /><span>{data ? "Latest refresh failed. Showing the last successful update." : error}</span><button onClick={() => void fetchMatches()} type="button">Try again</button></div>}
       {loading && !data ? <LoadingState /> : <>

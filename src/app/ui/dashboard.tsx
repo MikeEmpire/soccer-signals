@@ -68,6 +68,7 @@ export function Dashboard({ soccerOnly = false }: { soccerOnly?: boolean }) {
     <div className="ambient ambient-one" /><div className="ambient ambient-two" />
     <div className="dashboard-container">
       <header className="site-header"><div className="brand-block"><div className="brand-icon"><Shield size={20} /></div><div><div className="eyebrow">Sports Signals</div><h1>Pregame Odds Monitor</h1></div></div><div className="header-actions"><div className="live-count"><span className="live-dot" /><strong>{data?.count ?? 0}</strong> upcoming events</div><button className="refresh-button" type="button" disabled={refreshing || !ready} onClick={refresh} aria-label="Refresh odds"><RefreshCw size={16} className={refreshing ? "is-spinning" : ""} /><span>Refresh</span></button></div></header>
+      <nav className="page-nav" aria-label="Site sections"><span className="page-nav-link page-nav-active" aria-current="page">Live Odds</span><Link href="/review" className="page-nav-link">Daily Review</Link></nav>
       <div className="toolbar"><nav className="filter-shell odds-league-filter" aria-label="Odds leagues">{leagues.map((league) => <button type="button" key={league.key} aria-pressed={selected.key === league.key} className={selected.key === league.key ? "filter-active" : ""} onClick={() => {
         if (league.key === selected.key) return;
         const url = new URL(window.location.href); url.searchParams.set("league", league.key); window.history.pushState(null, "", url);
@@ -82,7 +83,7 @@ export function Dashboard({ soccerOnly = false }: { soccerOnly?: boolean }) {
         {data && groups.length === 0 && <div className="empty-state"><Activity size={20} /><div><strong>No upcoming events</strong><span>No events are available for {selected.label} in this feed window.</span></div></div>}
         {groups.map((group) => <section className="content-section day-section" key={group.key}><div className="day-heading"><h2>{group.label}</h2><span>{group.events.length} events</span></div><div className="signal-grid">{group.events.map((event) => <OddsEventCard key={`${event.provider ?? "event"}-${event.id}`} event={event} onRetry={refresh} refreshing={refreshing} dataOutdated={Boolean(error)} />)}</div></section>)}
       </div>
-      <footer><span>Auto-refreshes every 5 minutes while visible</span><span className="footer-divider" /><span>Times shown in your local timezone</span><Link href="/soccer">Soccer monitor & history</Link></footer>
+      <footer><span>Auto-refreshes every 5 minutes while visible</span><span className="footer-divider" /><span>Times shown in your local timezone</span></footer>
     </div>
   </main>;
 }
