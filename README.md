@@ -62,7 +62,7 @@ opening-to-current signal movement measure. NFL and MLB displays retain their be
 ## NFL receiving research V1
 
 Open `/nfl` (the **NFL Props** navigation tab). **Live** reads the next rolling
-48 hours from `/api/odds/nfl/receiving/`, proxied to the same path on
+72 hours from `/api/odds/nfl/receiving/`, proxied to the same path on
 `NEXT_PUBLIC_API_BASE_URL`. Receiving yards and receptions cards display the
 backend projection, DraftKings/FanDuel/Bovada lines and matched over/under prices,
 book coverage, projection differences, historical sample sizes and expandable

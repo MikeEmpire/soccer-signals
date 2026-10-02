@@ -21,7 +21,9 @@ const now = Date.parse(example.generated_at);
 const render = (change = {}, options = {}) => renderToStaticMarkup(React.createElement(NFLReceivingCard, { card: { ...card, ...change }, now, sample: true, ...options }));
 
 test('sample is a valid generated feed and card shows backend projection evidence', () => {
-  assert.equal(parseReceivingFeed(example).window_hours, 48);
+  assert.equal(parseReceivingFeed(example).window_hours, 72);
+  assert.equal(parseReceivingFeed({ ...example, window_hours: 48 }).window_hours, 48);
+  assert.throws(() => parseReceivingFeed({ ...example, window_hours: 999 }), /unexpected response/);
   const html = render();
   for (const text of ['Example Receiver', 'Receiving yards', '62.75', '56.5', '+6.25', '+12.25', 'DraftKings', 'FanDuel', 'Bovada', 'How this projection was built', 'Pregame history']) assert.ok(html.includes(text), text);
   assert.ok(!html.includes('Caesars'));
@@ -50,7 +52,7 @@ test('sample preview is explicitly labeled and live is the default', () => {
   const { NFLReceivingDashboard } = require('../src/app/ui/nfl-receiving-dashboard.tsx');
   const html = renderToStaticMarkup(React.createElement(NFLReceivingDashboard));
   assert.ok(html.includes('Sample preview'));
-  assert.ok(html.includes('Next 48 hours'));
+  assert.ok(html.includes('Next 72 hours'));
   assert.ok(!html.includes('Example Receiver'));
 });
 test('extra sportsbook rows never appear in a card', () => {

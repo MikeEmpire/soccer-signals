@@ -36,7 +36,7 @@ export function marketIsCurrent(card: ReceivingCard, now: number) {
 export function parseReceivingFeed(value: unknown): ReceivingFeed {
   if (!value || typeof value !== "object") throw new Error("The NFL service returned an unexpected response.");
   const data = value as Partial<ReceivingFeed>;
-  if (data.window_hours !== 48 || !Array.isArray(data.games) || !Array.isArray(data.signals)
+  if (![48, 72].includes(data.window_hours ?? 0) || !Array.isArray(data.games) || !Array.isArray(data.signals)
       || !data.generated_at || !Number.isFinite(Date.parse(data.generated_at))
       || data.signals.some(card => !card || !(card.prop in PROP_LABELS) || !card.player
         || !card.projection || !card.market || !Array.isArray(card.market.books)

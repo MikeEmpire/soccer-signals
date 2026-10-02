@@ -1,9 +1,9 @@
 {
   "revision": "receiving-research-v1",
   "generated_at": "2026-09-30T16:55:00Z",
-  "window_hours": 48,
+  "window_hours": 72,
   "window_start": "2026-09-30T16:55:00Z",
-  "window_end": "2026-10-02T16:55:00Z",
+  "window_end": "2026-10-03T16:55:00.000Z",
   "game_count": 1,
   "count": 2,
   "projection_count": 2,
