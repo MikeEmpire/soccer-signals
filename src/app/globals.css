@@ -389,3 +389,53 @@ button:focus-visible,summary:focus-visible,a:focus-visible { outline:2px solid v
   .game-teams { font-size:15px; }
   .game-score { font-size:17px; }
 }
+
+/* NFL receiving research */
+.receiving-intro { display:flex; align-items:center; justify-content:space-between; gap:24px; margin:34px 0 24px; }
+.receiving-intro h2 { font-size:30px; letter-spacing:-.04em; margin:0 0 10px; }
+.receiving-intro p { max-width:560px; color:var(--muted); line-height:1.6; font-size:14px; margin:0; }
+.receiving-intro .filter-shell { flex-shrink:0; }
+.receiving-sample,.receiving-error { border:1px solid #e4ca88; background:#fff8e8; border-radius:12px; padding:15px 18px; margin:0 0 22px; color:#795614; line-height:1.6; font-size:13px; }
+.receiving-sample strong,.receiving-sample span { display:block; }
+.receiving-error button { margin-left:12px; background:none; border:0; text-decoration:underline; cursor:pointer; color:inherit; }
+.receiving-toolbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin:24px 0 20px; }
+.receiving-summary { display:flex; flex-wrap:wrap; gap:12px 28px; padding:0 0 28px; color:var(--muted); font-size:12px; }
+.receiving-summary strong { color:var(--ink); }
+.receiving-card { min-width:0; padding:24px; border:1px solid #dce4d7; border-radius:16px; background:#fff; box-shadow:0 8px 26px rgba(25,50,35,.055); }
+.receiving-card-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+.receiving-card h3 { margin:7px 0 0; font-size:23px; letter-spacing:-.03em; }
+.receiving-coverage { font-size:11px; white-space:nowrap; color:var(--green); border:1px solid #dce6d7; background:#f4f9f0; padding:5px 9px; border-radius:20px; }
+.receiving-projection { display:grid; grid-template-columns:1.25fr 1fr 1fr; gap:12px; padding:23px 0 10px; }
+.receiving-projection span { display:block; color:var(--muted); font-size:11px; margin-bottom:7px; }
+.receiving-projection strong { font-size:27px; font-weight:650; letter-spacing:-.03em; color:var(--forest); font-variant-numeric:tabular-nums; }
+.receiving-projection small { font-size:11px; font-weight:400; color:var(--muted); }
+.receiving-caption { font-size:11px; line-height:1.6; color:var(--muted); }
+.receiving-table-scroll { overflow-x:auto; max-width:100%; }
+.receiving-books { width:100%; border-collapse:collapse; font-size:12px; margin:14px 0; }
+.receiving-books caption { text-align:left; font-weight:600; padding:8px 0; }
+.receiving-books th,.receiving-books td { padding:11px 5px; border-bottom:1px solid var(--soft-line); text-align:right; font-variant-numeric:tabular-nums; }
+.receiving-books th:first-child { text-align:left; }
+.receiving-books tbody th { font-weight:600; }
+.receiving-books thead { font-size:10px; color:var(--muted); }
+.receiving-note { color:#796226; font-size:12px; line-height:1.6; }
+.receiving-details { margin-top:18px; padding-top:15px; border-top:1px solid var(--soft-line); font-size:12px; }
+.receiving-details summary { cursor:pointer; color:var(--forest); font-weight:600; padding:4px 0; }
+.receiving-components { margin:16px 0; }
+.receiving-components > div { display:flex; justify-content:space-between; gap:12px; margin:10px 0; }
+.receiving-components dt { color:var(--muted); }
+.receiving-components dd { font-variant-numeric:tabular-nums; margin:0; }
+.receiving-empty { padding:32px; margin-bottom:30px; border:1px dashed #cad6cb; border-radius:16px; background:rgba(255,255,255,.55); }
+.receiving-empty h3 { margin:0 0 10px; font-size:18px; }
+.receiving-empty p { color:var(--muted); line-height:1.6; margin:0; font-size:13px; }
+.receiving-page .page-nav { overflow-x:auto; }
+@media(max-width:700px) {
+  .receiving-intro,.receiving-toolbar { align-items:flex-start; flex-direction:column; }
+  .receiving-intro h2 { font-size:27px; }
+  .receiving-page .site-header h1 { font-size:18px; }
+  .receiving-page .signal-grid { grid-template-columns:1fr; }
+  .receiving-card { padding:18px; }
+  .receiving-projection strong { font-size:24px; }
+  .receiving-toolbar .filter-shell button { padding:9px 10px; font-size:11px; }
+  .receiving-page .section-heading { gap:10px; align-items:flex-start; }
+  .receiving-page .section-heading h2 { font-size:20px; }
+}

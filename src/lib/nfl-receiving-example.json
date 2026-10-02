@@ -1,0 +1,1686 @@
+{
+  "revision": "receiving-research-v1",
+  "generated_at": "2026-09-30T16:55:00Z",
+  "window_hours": 48,
+  "window_start": "2026-09-30T16:55:00Z",
+  "window_end": "2026-10-02T16:55:00Z",
+  "game_count": 1,
+  "count": 2,
+  "projection_count": 2,
+  "truncated": false,
+  "games": [
+    {
+      "id": "target",
+      "name": "Illustrative NFL matchup",
+      "kickoff": "2026-09-30T17:00:00Z",
+      "game_metadata": {
+        "game_status": "pregame",
+        "data_source": "stored",
+        "is_final": false,
+        "is_processed": false,
+        "last_updated": "2026-10-02T06:09:43.900781+00:00",
+        "processing_state": "unknown",
+        "warnings": []
+      }
+    }
+  ],
+  "signals": [
+    {
+      "id": "target:receiver:receiving_yards",
+      "game_id": "target",
+      "player": {
+        "id": "receiver",
+        "name": "Example Receiver"
+      },
+      "prop": "receiving_yards",
+      "available": true,
+      "reason": null,
+      "input_observed_at": "2026-09-30T16:55:00Z",
+      "projection": {
+        "available": true,
+        "components": {
+          "season": {
+            "value": "45",
+            "games": 8,
+            "configured_weight": "0.40",
+            "effective_weight": "0.4",
+            "used": true
+          },
+          "last_5": {
+            "value": "60",
+            "games": 5,
+            "configured_weight": "0.35",
+            "effective_weight": "0.35",
+            "used": true
+          },
+          "last_3": {
+            "value": "70",
+            "games": 3,
+            "configured_weight": "0.25",
+            "effective_weight": "0.25",
+            "used": true
+          }
+        },
+        "baseline": "56.50",
+        "opportunity_adjustment": "6.250",
+        "opponent_adjustment": "0.0000",
+        "catch_rate_adjustment": "0",
+        "catch_rate_reason": "Catch rate already enters target-volume conversion; no duplicate adjustment",
+        "opportunity_detail": {
+          "available": true,
+          "target_delta": "2.5",
+          "efficiency": "10",
+          "strength": "0.25",
+          "raw": "6.250",
+          "cap": "8.4750",
+          "reason": "last_3_vs_season_targets"
+        },
+        "opponent_detail": {
+          "available": true,
+          "strength": "0.25",
+          "raw": "0.0000",
+          "cap": "5.6500",
+          "reason": "opponent_vs_league_pass_defense"
+        },
+        "floor_adjustment": "0",
+        "final": "62.7500",
+        "interpretation": "uncalibrated production projection, not profitable-bet or probability claim"
+      },
+      "market": {
+        "books_expected": 3,
+        "books_available": 3,
+        "books": [
+          {
+            "id": "draftkings",
+            "name": "DraftKings",
+            "line": "40.5000",
+            "over_odds": -110,
+            "under_odds": -110,
+            "last_seen_at": "2026-09-30T16:55:00Z",
+            "edge": "22.2500"
+          },
+          {
+            "id": "fanduel",
+            "name": "FanDuel",
+            "line": "50.5000",
+            "over_odds": -110,
+            "under_odds": -110,
+            "last_seen_at": "2026-09-30T16:55:00Z",
+            "edge": "12.2500"
+          },
+          {
+            "id": "bovada",
+            "name": "Bovada",
+            "line": "60.5000",
+            "over_odds": -110,
+            "under_odds": -110,
+            "last_seen_at": "2026-09-30T16:55:00Z",
+            "edge": "2.2500"
+          }
+        ],
+        "median_line": "50.5000",
+        "line_range": "20.0000",
+        "expires_at": "2026-09-30T17:15:00Z",
+        "line_standard_deviation": "8.164965809277260327324280249"
+      },
+      "edge_vs_median": "12.2500",
+      "history": {
+        "yards": {
+          "season": {
+            "games_available": 8,
+            "games_observed": 8,
+            "required_games": 1,
+            "available": true,
+            "mean": "45",
+            "median": "45",
+            "stddev": "22.91287847477920003294023597",
+            "min": "10",
+            "max": "80",
+            "cv": "0.5091750772173155562875607993",
+            "iqr": "35.00"
+          },
+          "last_8": {
+            "games_available": 8,
+            "games_observed": 8,
+            "required_games": 8,
+            "available": true,
+            "mean": "45",
+            "median": "45",
+            "stddev": "22.91287847477920003294023597",
+            "min": "10",
+            "max": "80",
+            "cv": "0.5091750772173155562875607993",
+            "iqr": "35.00"
+          },
+          "last_5": {
+            "games_available": 5,
+            "games_observed": 5,
+            "required_games": 5,
+            "available": true,
+            "mean": "60",
+            "median": "60",
+            "stddev": "14.14213562373095048801688724",
+            "min": "40",
+            "max": "80",
+            "cv": "0.2357022603955158414669481207",
+            "iqr": "20.00"
+          },
+          "last_3": {
+            "games_available": 3,
+            "games_observed": 3,
+            "required_games": 3,
+            "available": true,
+            "mean": "70",
+            "median": "70",
+            "stddev": "8.164965809277260327324280249",
+            "min": "60",
+            "max": "80",
+            "cv": "0.1166423687039608618189182893",
+            "iqr": "10.00"
+          }
+        },
+        "receptions": {
+          "season": {
+            "games_available": 8,
+            "games_observed": 8,
+            "required_games": 1,
+            "available": true,
+            "mean": "4.5",
+            "median": "4.5",
+            "stddev": "2.291287847477920003294023597",
+            "min": "1",
+            "max": "8",
+            "cv": "0.5091750772173155562875607993",
+            "iqr": "3.50"
+          },
+          "last_8": {
+            "games_available": 8,
+            "games_observed": 8,
+            "required_games": 8,
+            "available": true,
+            "mean": "4.5",
+            "median": "4.5",
+            "stddev": "2.291287847477920003294023597",
+            "min": "1",
+            "max": "8",
+            "cv": "0.5091750772173155562875607993",
+            "iqr": "3.50"
+          },
+          "last_5": {
+            "games_available": 5,
+            "games_observed": 5,
+            "required_games": 5,
+            "available": true,
+            "mean": "6",
+            "median": "6",
+            "stddev": "1.414213562373095048801688724",
+            "min": "4",
+            "max": "8",
+            "cv": "0.2357022603955158414669481207",
+            "iqr": "2.00"
+          },
+          "last_3": {
+            "games_available": 3,
+            "games_observed": 3,
+            "required_games": 3,
+            "available": true,
+            "mean": "7",
+            "median": "7",
+            "stddev": "0.8164965809277260327324280249",
+            "min": "6",
+            "max": "8",
+            "cv": "0.1166423687039608618189182893",
+            "iqr": "1.00"
+          }
+        },
+        "targets": {
+          "season": {
+            "games_available": 8,
+            "games_observed": 8,
+            "required_games": 1,
+            "available": true,
+            "mean": "4.5",
+            "median": "4.5",
+            "stddev": "2.291287847477920003294023597",
+            "min": "1",
+            "max": "8",
+            "cv": "0.5091750772173155562875607993",
+            "iqr": "3.50"
+          },
+          "last_8": {
+            "games_available": 8,
+            "games_observed": 8,
+            "required_games": 8,
+            "available": true,
+            "mean": "4.5",
+            "median": "4.5",
+            "stddev": "2.291287847477920003294023597",
+            "min": "1",
+            "max": "8",
+            "cv": "0.5091750772173155562875607993",
+            "iqr": "3.50"
+          },
+          "last_5": {
+            "games_available": 5,
+            "games_observed": 5,
+            "required_games": 5,
+            "available": true,
+            "mean": "6",
+            "median": "6",
+            "stddev": "1.414213562373095048801688724",
+            "min": "4",
+            "max": "8",
+            "cv": "0.2357022603955158414669481207",
+            "iqr": "2.00"
+          },
+          "last_3": {
+            "games_available": 3,
+            "games_observed": 3,
+            "required_games": 3,
+            "available": true,
+            "mean": "7",
+            "median": "7",
+            "stddev": "0.8164965809277260327324280249",
+            "min": "6",
+            "max": "8",
+            "cv": "0.1166423687039608618189182893",
+            "iqr": "1.00"
+          }
+        },
+        "longest_reception": {
+          "season": {
+            "games_available": 8,
+            "games_observed": 8,
+            "required_games": 1,
+            "available": true,
+            "mean": "20",
+            "median": "20",
+            "stddev": "0",
+            "min": "20",
+            "max": "20",
+            "cv": "0",
+            "iqr": "0.00"
+          },
+          "last_8": {
+            "games_available": 8,
+            "games_observed": 8,
+            "required_games": 8,
+            "available": true,
+            "mean": "20",
+            "median": "20",
+            "stddev": "0",
+            "min": "20",
+            "max": "20",
+            "cv": "0",
+            "iqr": "0.00"
+          },
+          "last_5": {
+            "games_available": 5,
+            "games_observed": 5,
+            "required_games": 5,
+            "available": true,
+            "mean": "20",
+            "median": "20",
+            "stddev": "0",
+            "min": "20",
+            "max": "20",
+            "cv": "0",
+            "iqr": "0.00"
+          },
+          "last_3": {
+            "games_available": 3,
+            "games_observed": 3,
+            "required_games": 3,
+            "available": true,
+            "mean": "20",
+            "median": "20",
+            "stddev": "0",
+            "min": "20",
+            "max": "20",
+            "cv": "0",
+            "iqr": "0.00"
+          }
+        }
+      },
+      "opportunity": {
+        "windows": {
+          "season": {
+            "targets_per_game": {
+              "games_available": 8,
+              "games_observed": 8,
+              "required_games": 1,
+              "available": true,
+              "mean": "4.5",
+              "median": "4.5",
+              "stddev": "2.291287847477920003294023597",
+              "min": "1",
+              "max": "8",
+              "cv": "0.5091750772173155562875607993",
+              "iqr": "3.50"
+            },
+            "receptions_per_game": {
+              "games_available": 8,
+              "games_observed": 8,
+              "required_games": 1,
+              "available": true,
+              "mean": "4.5",
+              "median": "4.5",
+              "stddev": "2.291287847477920003294023597",
+              "min": "1",
+              "max": "8",
+              "cv": "0.5091750772173155562875607993",
+              "iqr": "3.50"
+            },
+            "catch_rate": {
+              "value": "1",
+              "games": 8,
+              "numerator": "36",
+              "denominator": "36",
+              "game_ids": [
+                544,
+                545,
+                546,
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "yards_per_target": {
+              "value": "10",
+              "games": 8,
+              "numerator": "360",
+              "denominator": "36",
+              "game_ids": [
+                544,
+                545,
+                546,
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "yards_per_reception": {
+              "value": "10",
+              "games": 8,
+              "numerator": "360",
+              "denominator": "36",
+              "game_ids": [
+                544,
+                545,
+                546,
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "target_share": {
+              "value": "0.1125",
+              "games": 8,
+              "numerator": "36",
+              "denominator": "320",
+              "game_ids": [
+                544,
+                545,
+                546,
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            }
+          },
+          "last_8": {
+            "targets_per_game": {
+              "games_available": 8,
+              "games_observed": 8,
+              "required_games": 8,
+              "available": true,
+              "mean": "4.5",
+              "median": "4.5",
+              "stddev": "2.291287847477920003294023597",
+              "min": "1",
+              "max": "8",
+              "cv": "0.5091750772173155562875607993",
+              "iqr": "3.50"
+            },
+            "receptions_per_game": {
+              "games_available": 8,
+              "games_observed": 8,
+              "required_games": 8,
+              "available": true,
+              "mean": "4.5",
+              "median": "4.5",
+              "stddev": "2.291287847477920003294023597",
+              "min": "1",
+              "max": "8",
+              "cv": "0.5091750772173155562875607993",
+              "iqr": "3.50"
+            },
+            "catch_rate": {
+              "value": "1",
+              "games": 8,
+              "numerator": "36",
+              "denominator": "36",
+              "game_ids": [
+                544,
+                545,
+                546,
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "yards_per_target": {
+              "value": "10",
+              "games": 8,
+              "numerator": "360",
+              "denominator": "36",
+              "game_ids": [
+                544,
+                545,
+                546,
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "yards_per_reception": {
+              "value": "10",
+              "games": 8,
+              "numerator": "360",
+              "denominator": "36",
+              "game_ids": [
+                544,
+                545,
+                546,
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "target_share": {
+              "value": "0.1125",
+              "games": 8,
+              "numerator": "36",
+              "denominator": "320",
+              "game_ids": [
+                544,
+                545,
+                546,
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            }
+          },
+          "last_5": {
+            "targets_per_game": {
+              "games_available": 5,
+              "games_observed": 5,
+              "required_games": 5,
+              "available": true,
+              "mean": "6",
+              "median": "6",
+              "stddev": "1.414213562373095048801688724",
+              "min": "4",
+              "max": "8",
+              "cv": "0.2357022603955158414669481207",
+              "iqr": "2.00"
+            },
+            "receptions_per_game": {
+              "games_available": 5,
+              "games_observed": 5,
+              "required_games": 5,
+              "available": true,
+              "mean": "6",
+              "median": "6",
+              "stddev": "1.414213562373095048801688724",
+              "min": "4",
+              "max": "8",
+              "cv": "0.2357022603955158414669481207",
+              "iqr": "2.00"
+            },
+            "catch_rate": {
+              "value": "1",
+              "games": 5,
+              "numerator": "30",
+              "denominator": "30",
+              "game_ids": [
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "yards_per_target": {
+              "value": "10",
+              "games": 5,
+              "numerator": "300",
+              "denominator": "30",
+              "game_ids": [
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "yards_per_reception": {
+              "value": "10",
+              "games": 5,
+              "numerator": "300",
+              "denominator": "30",
+              "game_ids": [
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "target_share": {
+              "value": "0.15",
+              "games": 5,
+              "numerator": "30",
+              "denominator": "200",
+              "game_ids": [
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            }
+          },
+          "last_3": {
+            "targets_per_game": {
+              "games_available": 3,
+              "games_observed": 3,
+              "required_games": 3,
+              "available": true,
+              "mean": "7",
+              "median": "7",
+              "stddev": "0.8164965809277260327324280249",
+              "min": "6",
+              "max": "8",
+              "cv": "0.1166423687039608618189182893",
+              "iqr": "1.00"
+            },
+            "receptions_per_game": {
+              "games_available": 3,
+              "games_observed": 3,
+              "required_games": 3,
+              "available": true,
+              "mean": "7",
+              "median": "7",
+              "stddev": "0.8164965809277260327324280249",
+              "min": "6",
+              "max": "8",
+              "cv": "0.1166423687039608618189182893",
+              "iqr": "1.00"
+            },
+            "catch_rate": {
+              "value": "1",
+              "games": 3,
+              "numerator": "21",
+              "denominator": "21",
+              "game_ids": [
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "yards_per_target": {
+              "value": "10",
+              "games": 3,
+              "numerator": "210",
+              "denominator": "21",
+              "game_ids": [
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "yards_per_reception": {
+              "value": "10",
+              "games": 3,
+              "numerator": "210",
+              "denominator": "21",
+              "game_ids": [
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "target_share": {
+              "value": "0.175",
+              "games": 3,
+              "numerator": "21",
+              "denominator": "120",
+              "game_ids": [
+                549,
+                550,
+                551
+              ],
+              "available": true
+            }
+          }
+        },
+        "trend": {
+          "season": "4.5",
+          "last_5": "6",
+          "delta_last_5_vs_season": "1.5",
+          "last_3": "7",
+          "delta_last_3_vs_season": "2.5"
+        }
+      },
+      "volatility": {
+        "games_available": 8,
+        "games_observed": 8,
+        "required_games": 1,
+        "available": true,
+        "mean": "45",
+        "median": "45",
+        "stddev": "22.91287847477920003294023597",
+        "min": "10",
+        "max": "80",
+        "cv": "0.5091750772173155562875607993",
+        "iqr": "35.00"
+      },
+      "hit_rates": {
+        "40.5": {
+          "season": {
+            "available": true,
+            "sample_size": 8,
+            "required_games": 1,
+            "over": 4,
+            "under": 4,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.5",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          },
+          "last_8": {
+            "available": true,
+            "sample_size": 8,
+            "required_games": 8,
+            "over": 4,
+            "under": 4,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.5",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          },
+          "last_5": {
+            "available": true,
+            "sample_size": 5,
+            "required_games": 5,
+            "over": 4,
+            "under": 1,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.8",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          },
+          "last_3": {
+            "available": true,
+            "sample_size": 3,
+            "required_games": 3,
+            "over": 3,
+            "under": 0,
+            "push": 0,
+            "over_rate_excluding_pushes": "1",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          }
+        },
+        "50.5": {
+          "season": {
+            "available": true,
+            "sample_size": 8,
+            "required_games": 1,
+            "over": 3,
+            "under": 5,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.375",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          },
+          "last_8": {
+            "available": true,
+            "sample_size": 8,
+            "required_games": 8,
+            "over": 3,
+            "under": 5,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.375",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          },
+          "last_5": {
+            "available": true,
+            "sample_size": 5,
+            "required_games": 5,
+            "over": 3,
+            "under": 2,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.6",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          },
+          "last_3": {
+            "available": true,
+            "sample_size": 3,
+            "required_games": 3,
+            "over": 3,
+            "under": 0,
+            "push": 0,
+            "over_rate_excluding_pushes": "1",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          }
+        },
+        "60.5": {
+          "season": {
+            "available": true,
+            "sample_size": 8,
+            "required_games": 1,
+            "over": 2,
+            "under": 6,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.25",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          },
+          "last_8": {
+            "available": true,
+            "sample_size": 8,
+            "required_games": 8,
+            "over": 2,
+            "under": 6,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.25",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          },
+          "last_5": {
+            "available": true,
+            "sample_size": 5,
+            "required_games": 5,
+            "over": 2,
+            "under": 3,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.4",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          },
+          "last_3": {
+            "available": true,
+            "sample_size": 3,
+            "required_games": 3,
+            "over": 2,
+            "under": 1,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.6666666666666666666666666667",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          }
+        }
+      },
+      "data_gaps": [
+        "No reliable snap/route/starter data in this input contract",
+        "Legacy rows are first known at capture time, not their game date",
+        "Missing receiving row is not inferred to be a zero-target appearance",
+        "Mutable season totals/splits are excluded; splits are derived from captured games"
+      ]
+    },
+    {
+      "id": "target:receiver:receptions",
+      "game_id": "target",
+      "player": {
+        "id": "receiver",
+        "name": "Example Receiver"
+      },
+      "prop": "receptions",
+      "available": true,
+      "reason": null,
+      "input_observed_at": "2026-09-30T16:55:00Z",
+      "projection": {
+        "available": true,
+        "components": {
+          "season": {
+            "value": "4.5",
+            "games": 8,
+            "configured_weight": "0.40",
+            "effective_weight": "0.4",
+            "used": true
+          },
+          "last_5": {
+            "value": "6",
+            "games": 5,
+            "configured_weight": "0.35",
+            "effective_weight": "0.35",
+            "used": true
+          },
+          "last_3": {
+            "value": "7",
+            "games": 3,
+            "configured_weight": "0.25",
+            "effective_weight": "0.25",
+            "used": true
+          }
+        },
+        "baseline": "5.65",
+        "opportunity_adjustment": "0.625",
+        "opponent_adjustment": "0.0000",
+        "catch_rate_adjustment": "0",
+        "catch_rate_reason": "Catch rate already enters target-volume conversion; no duplicate adjustment",
+        "opportunity_detail": {
+          "available": true,
+          "target_delta": "2.5",
+          "efficiency": "1",
+          "strength": "0.25",
+          "raw": "0.625",
+          "cap": "0.8475",
+          "reason": "last_3_vs_season_targets"
+        },
+        "opponent_detail": {
+          "available": true,
+          "strength": "0.25",
+          "raw": "0.0000",
+          "cap": "0.5650",
+          "reason": "opponent_vs_league_pass_defense"
+        },
+        "floor_adjustment": "0",
+        "final": "6.2750",
+        "interpretation": "uncalibrated production projection, not profitable-bet or probability claim"
+      },
+      "market": {
+        "books_expected": 3,
+        "books_available": 3,
+        "books": [
+          {
+            "id": "draftkings",
+            "name": "DraftKings",
+            "line": "4.0500",
+            "over_odds": -110,
+            "under_odds": -110,
+            "last_seen_at": "2026-09-30T16:55:00Z",
+            "edge": "2.2250"
+          },
+          {
+            "id": "fanduel",
+            "name": "FanDuel",
+            "line": "5.0500",
+            "over_odds": -110,
+            "under_odds": -110,
+            "last_seen_at": "2026-09-30T16:55:00Z",
+            "edge": "1.2250"
+          },
+          {
+            "id": "bovada",
+            "name": "Bovada",
+            "line": "6.0500",
+            "over_odds": -110,
+            "under_odds": -110,
+            "last_seen_at": "2026-09-30T16:55:00Z",
+            "edge": "0.2250"
+          }
+        ],
+        "median_line": "5.0500",
+        "line_range": "2.0000",
+        "expires_at": "2026-09-30T17:15:00Z",
+        "line_standard_deviation": "0.8164965809277260327324280249"
+      },
+      "edge_vs_median": "1.2250",
+      "history": {
+        "yards": {
+          "season": {
+            "games_available": 8,
+            "games_observed": 8,
+            "required_games": 1,
+            "available": true,
+            "mean": "45",
+            "median": "45",
+            "stddev": "22.91287847477920003294023597",
+            "min": "10",
+            "max": "80",
+            "cv": "0.5091750772173155562875607993",
+            "iqr": "35.00"
+          },
+          "last_8": {
+            "games_available": 8,
+            "games_observed": 8,
+            "required_games": 8,
+            "available": true,
+            "mean": "45",
+            "median": "45",
+            "stddev": "22.91287847477920003294023597",
+            "min": "10",
+            "max": "80",
+            "cv": "0.5091750772173155562875607993",
+            "iqr": "35.00"
+          },
+          "last_5": {
+            "games_available": 5,
+            "games_observed": 5,
+            "required_games": 5,
+            "available": true,
+            "mean": "60",
+            "median": "60",
+            "stddev": "14.14213562373095048801688724",
+            "min": "40",
+            "max": "80",
+            "cv": "0.2357022603955158414669481207",
+            "iqr": "20.00"
+          },
+          "last_3": {
+            "games_available": 3,
+            "games_observed": 3,
+            "required_games": 3,
+            "available": true,
+            "mean": "70",
+            "median": "70",
+            "stddev": "8.164965809277260327324280249",
+            "min": "60",
+            "max": "80",
+            "cv": "0.1166423687039608618189182893",
+            "iqr": "10.00"
+          }
+        },
+        "receptions": {
+          "season": {
+            "games_available": 8,
+            "games_observed": 8,
+            "required_games": 1,
+            "available": true,
+            "mean": "4.5",
+            "median": "4.5",
+            "stddev": "2.291287847477920003294023597",
+            "min": "1",
+            "max": "8",
+            "cv": "0.5091750772173155562875607993",
+            "iqr": "3.50"
+          },
+          "last_8": {
+            "games_available": 8,
+            "games_observed": 8,
+            "required_games": 8,
+            "available": true,
+            "mean": "4.5",
+            "median": "4.5",
+            "stddev": "2.291287847477920003294023597",
+            "min": "1",
+            "max": "8",
+            "cv": "0.5091750772173155562875607993",
+            "iqr": "3.50"
+          },
+          "last_5": {
+            "games_available": 5,
+            "games_observed": 5,
+            "required_games": 5,
+            "available": true,
+            "mean": "6",
+            "median": "6",
+            "stddev": "1.414213562373095048801688724",
+            "min": "4",
+            "max": "8",
+            "cv": "0.2357022603955158414669481207",
+            "iqr": "2.00"
+          },
+          "last_3": {
+            "games_available": 3,
+            "games_observed": 3,
+            "required_games": 3,
+            "available": true,
+            "mean": "7",
+            "median": "7",
+            "stddev": "0.8164965809277260327324280249",
+            "min": "6",
+            "max": "8",
+            "cv": "0.1166423687039608618189182893",
+            "iqr": "1.00"
+          }
+        },
+        "targets": {
+          "season": {
+            "games_available": 8,
+            "games_observed": 8,
+            "required_games": 1,
+            "available": true,
+            "mean": "4.5",
+            "median": "4.5",
+            "stddev": "2.291287847477920003294023597",
+            "min": "1",
+            "max": "8",
+            "cv": "0.5091750772173155562875607993",
+            "iqr": "3.50"
+          },
+          "last_8": {
+            "games_available": 8,
+            "games_observed": 8,
+            "required_games": 8,
+            "available": true,
+            "mean": "4.5",
+            "median": "4.5",
+            "stddev": "2.291287847477920003294023597",
+            "min": "1",
+            "max": "8",
+            "cv": "0.5091750772173155562875607993",
+            "iqr": "3.50"
+          },
+          "last_5": {
+            "games_available": 5,
+            "games_observed": 5,
+            "required_games": 5,
+            "available": true,
+            "mean": "6",
+            "median": "6",
+            "stddev": "1.414213562373095048801688724",
+            "min": "4",
+            "max": "8",
+            "cv": "0.2357022603955158414669481207",
+            "iqr": "2.00"
+          },
+          "last_3": {
+            "games_available": 3,
+            "games_observed": 3,
+            "required_games": 3,
+            "available": true,
+            "mean": "7",
+            "median": "7",
+            "stddev": "0.8164965809277260327324280249",
+            "min": "6",
+            "max": "8",
+            "cv": "0.1166423687039608618189182893",
+            "iqr": "1.00"
+          }
+        },
+        "longest_reception": {
+          "season": {
+            "games_available": 8,
+            "games_observed": 8,
+            "required_games": 1,
+            "available": true,
+            "mean": "20",
+            "median": "20",
+            "stddev": "0",
+            "min": "20",
+            "max": "20",
+            "cv": "0",
+            "iqr": "0.00"
+          },
+          "last_8": {
+            "games_available": 8,
+            "games_observed": 8,
+            "required_games": 8,
+            "available": true,
+            "mean": "20",
+            "median": "20",
+            "stddev": "0",
+            "min": "20",
+            "max": "20",
+            "cv": "0",
+            "iqr": "0.00"
+          },
+          "last_5": {
+            "games_available": 5,
+            "games_observed": 5,
+            "required_games": 5,
+            "available": true,
+            "mean": "20",
+            "median": "20",
+            "stddev": "0",
+            "min": "20",
+            "max": "20",
+            "cv": "0",
+            "iqr": "0.00"
+          },
+          "last_3": {
+            "games_available": 3,
+            "games_observed": 3,
+            "required_games": 3,
+            "available": true,
+            "mean": "20",
+            "median": "20",
+            "stddev": "0",
+            "min": "20",
+            "max": "20",
+            "cv": "0",
+            "iqr": "0.00"
+          }
+        }
+      },
+      "opportunity": {
+        "windows": {
+          "season": {
+            "targets_per_game": {
+              "games_available": 8,
+              "games_observed": 8,
+              "required_games": 1,
+              "available": true,
+              "mean": "4.5",
+              "median": "4.5",
+              "stddev": "2.291287847477920003294023597",
+              "min": "1",
+              "max": "8",
+              "cv": "0.5091750772173155562875607993",
+              "iqr": "3.50"
+            },
+            "receptions_per_game": {
+              "games_available": 8,
+              "games_observed": 8,
+              "required_games": 1,
+              "available": true,
+              "mean": "4.5",
+              "median": "4.5",
+              "stddev": "2.291287847477920003294023597",
+              "min": "1",
+              "max": "8",
+              "cv": "0.5091750772173155562875607993",
+              "iqr": "3.50"
+            },
+            "catch_rate": {
+              "value": "1",
+              "games": 8,
+              "numerator": "36",
+              "denominator": "36",
+              "game_ids": [
+                544,
+                545,
+                546,
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "yards_per_target": {
+              "value": "10",
+              "games": 8,
+              "numerator": "360",
+              "denominator": "36",
+              "game_ids": [
+                544,
+                545,
+                546,
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "yards_per_reception": {
+              "value": "10",
+              "games": 8,
+              "numerator": "360",
+              "denominator": "36",
+              "game_ids": [
+                544,
+                545,
+                546,
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "target_share": {
+              "value": "0.1125",
+              "games": 8,
+              "numerator": "36",
+              "denominator": "320",
+              "game_ids": [
+                544,
+                545,
+                546,
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            }
+          },
+          "last_8": {
+            "targets_per_game": {
+              "games_available": 8,
+              "games_observed": 8,
+              "required_games": 8,
+              "available": true,
+              "mean": "4.5",
+              "median": "4.5",
+              "stddev": "2.291287847477920003294023597",
+              "min": "1",
+              "max": "8",
+              "cv": "0.5091750772173155562875607993",
+              "iqr": "3.50"
+            },
+            "receptions_per_game": {
+              "games_available": 8,
+              "games_observed": 8,
+              "required_games": 8,
+              "available": true,
+              "mean": "4.5",
+              "median": "4.5",
+              "stddev": "2.291287847477920003294023597",
+              "min": "1",
+              "max": "8",
+              "cv": "0.5091750772173155562875607993",
+              "iqr": "3.50"
+            },
+            "catch_rate": {
+              "value": "1",
+              "games": 8,
+              "numerator": "36",
+              "denominator": "36",
+              "game_ids": [
+                544,
+                545,
+                546,
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "yards_per_target": {
+              "value": "10",
+              "games": 8,
+              "numerator": "360",
+              "denominator": "36",
+              "game_ids": [
+                544,
+                545,
+                546,
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "yards_per_reception": {
+              "value": "10",
+              "games": 8,
+              "numerator": "360",
+              "denominator": "36",
+              "game_ids": [
+                544,
+                545,
+                546,
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "target_share": {
+              "value": "0.1125",
+              "games": 8,
+              "numerator": "36",
+              "denominator": "320",
+              "game_ids": [
+                544,
+                545,
+                546,
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            }
+          },
+          "last_5": {
+            "targets_per_game": {
+              "games_available": 5,
+              "games_observed": 5,
+              "required_games": 5,
+              "available": true,
+              "mean": "6",
+              "median": "6",
+              "stddev": "1.414213562373095048801688724",
+              "min": "4",
+              "max": "8",
+              "cv": "0.2357022603955158414669481207",
+              "iqr": "2.00"
+            },
+            "receptions_per_game": {
+              "games_available": 5,
+              "games_observed": 5,
+              "required_games": 5,
+              "available": true,
+              "mean": "6",
+              "median": "6",
+              "stddev": "1.414213562373095048801688724",
+              "min": "4",
+              "max": "8",
+              "cv": "0.2357022603955158414669481207",
+              "iqr": "2.00"
+            },
+            "catch_rate": {
+              "value": "1",
+              "games": 5,
+              "numerator": "30",
+              "denominator": "30",
+              "game_ids": [
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "yards_per_target": {
+              "value": "10",
+              "games": 5,
+              "numerator": "300",
+              "denominator": "30",
+              "game_ids": [
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "yards_per_reception": {
+              "value": "10",
+              "games": 5,
+              "numerator": "300",
+              "denominator": "30",
+              "game_ids": [
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "target_share": {
+              "value": "0.15",
+              "games": 5,
+              "numerator": "30",
+              "denominator": "200",
+              "game_ids": [
+                547,
+                548,
+                549,
+                550,
+                551
+              ],
+              "available": true
+            }
+          },
+          "last_3": {
+            "targets_per_game": {
+              "games_available": 3,
+              "games_observed": 3,
+              "required_games": 3,
+              "available": true,
+              "mean": "7",
+              "median": "7",
+              "stddev": "0.8164965809277260327324280249",
+              "min": "6",
+              "max": "8",
+              "cv": "0.1166423687039608618189182893",
+              "iqr": "1.00"
+            },
+            "receptions_per_game": {
+              "games_available": 3,
+              "games_observed": 3,
+              "required_games": 3,
+              "available": true,
+              "mean": "7",
+              "median": "7",
+              "stddev": "0.8164965809277260327324280249",
+              "min": "6",
+              "max": "8",
+              "cv": "0.1166423687039608618189182893",
+              "iqr": "1.00"
+            },
+            "catch_rate": {
+              "value": "1",
+              "games": 3,
+              "numerator": "21",
+              "denominator": "21",
+              "game_ids": [
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "yards_per_target": {
+              "value": "10",
+              "games": 3,
+              "numerator": "210",
+              "denominator": "21",
+              "game_ids": [
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "yards_per_reception": {
+              "value": "10",
+              "games": 3,
+              "numerator": "210",
+              "denominator": "21",
+              "game_ids": [
+                549,
+                550,
+                551
+              ],
+              "available": true
+            },
+            "target_share": {
+              "value": "0.175",
+              "games": 3,
+              "numerator": "21",
+              "denominator": "120",
+              "game_ids": [
+                549,
+                550,
+                551
+              ],
+              "available": true
+            }
+          }
+        },
+        "trend": {
+          "season": "4.5",
+          "last_5": "6",
+          "delta_last_5_vs_season": "1.5",
+          "last_3": "7",
+          "delta_last_3_vs_season": "2.5"
+        }
+      },
+      "volatility": {
+        "games_available": 8,
+        "games_observed": 8,
+        "required_games": 1,
+        "available": true,
+        "mean": "4.5",
+        "median": "4.5",
+        "stddev": "2.291287847477920003294023597",
+        "min": "1",
+        "max": "8",
+        "cv": "0.5091750772173155562875607993",
+        "iqr": "3.50"
+      },
+      "hit_rates": {
+        "4.05": {
+          "season": {
+            "available": true,
+            "sample_size": 8,
+            "required_games": 1,
+            "over": 4,
+            "under": 4,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.5",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          },
+          "last_8": {
+            "available": true,
+            "sample_size": 8,
+            "required_games": 8,
+            "over": 4,
+            "under": 4,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.5",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          },
+          "last_5": {
+            "available": true,
+            "sample_size": 5,
+            "required_games": 5,
+            "over": 4,
+            "under": 1,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.8",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          },
+          "last_3": {
+            "available": true,
+            "sample_size": 3,
+            "required_games": 3,
+            "over": 3,
+            "under": 0,
+            "push": 0,
+            "over_rate_excluding_pushes": "1",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          }
+        },
+        "5.05": {
+          "season": {
+            "available": true,
+            "sample_size": 8,
+            "required_games": 1,
+            "over": 3,
+            "under": 5,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.375",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          },
+          "last_8": {
+            "available": true,
+            "sample_size": 8,
+            "required_games": 8,
+            "over": 3,
+            "under": 5,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.375",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          },
+          "last_5": {
+            "available": true,
+            "sample_size": 5,
+            "required_games": 5,
+            "over": 3,
+            "under": 2,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.6",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          },
+          "last_3": {
+            "available": true,
+            "sample_size": 3,
+            "required_games": 3,
+            "over": 3,
+            "under": 0,
+            "push": 0,
+            "over_rate_excluding_pushes": "1",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          }
+        },
+        "6.05": {
+          "season": {
+            "available": true,
+            "sample_size": 8,
+            "required_games": 1,
+            "over": 2,
+            "under": 6,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.25",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          },
+          "last_8": {
+            "available": true,
+            "sample_size": 8,
+            "required_games": 8,
+            "over": 2,
+            "under": 6,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.25",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          },
+          "last_5": {
+            "available": true,
+            "sample_size": 5,
+            "required_games": 5,
+            "over": 2,
+            "under": 3,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.4",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          },
+          "last_3": {
+            "available": true,
+            "sample_size": 3,
+            "required_games": 3,
+            "over": 2,
+            "under": 1,
+            "push": 0,
+            "over_rate_excluding_pushes": "0.6666666666666666666666666667",
+            "interpretation": "empirical frequency at current threshold; not a win probability"
+          }
+        }
+      },
+      "data_gaps": [
+        "No reliable snap/route/starter data in this input contract",
+        "Legacy rows are first known at capture time, not their game date",
+        "Missing receiving row is not inferred to be a zero-target appearance",
+        "Mutable season totals/splits are excluded; splits are derived from captured games"
+      ]
+    }
+  ],
+  "interpretation": "Research projections, not calibrated probabilities or betting recommendations"
+}

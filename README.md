@@ -58,3 +58,31 @@ points supplied by the backend; the frontend does not evaluate thresholds or inf
 Soccer odds history preserves and displays each snapshot's own signals, never today's signals.
 The existing raw moneyline history delta remains a separate quote comparison, not the
 opening-to-current signal movement measure. NFL and MLB displays retain their behavior.
+
+## NFL receiving research V1
+
+Open `/nfl` (the **NFL Props** navigation tab). **Live** reads the next rolling
+48 hours from `/api/odds/nfl/receiving/`, proxied to the same path on
+`NEXT_PUBLIC_API_BASE_URL`. Receiving yards and receptions cards display the
+backend projection, DraftKings/FanDuel/Bovada lines and matched over/under prices,
+book coverage, projection differences, historical sample sizes and expandable
+baseline/adjustment details. No projections or consensus are computed in the
+browser. These are research estimates, not betting recommendations.
+
+**Sample preview** is an explicit opt-in, clearly labeled fixed synthetic dataset
+exported from backend tests. It works without a populated backend and never
+replaces a failed or empty live response automatically. The fixture is in
+`src/lib/nfl-receiving-example.json` and contains an illustrative matchup and
+Example Receiver, not a real-player forecast.
+
+Live data requires the backend odds migrations, upcoming persisted ESPN games,
+verified receiving markets and pregame input captures. The client refreshes
+once per minute while visible and on returning to the tab; refreshing does not
+collect provider data. Expired quotes and failed refreshes hide market
+comparisons. Games without markets, missing captures and transport errors have
+separate visible states. With only one book, median/disagreement remain absent.
+
+Run `node --test tests/nfl-receiving.test.cjs` for the seven NFL-specific tests.
+Focused ESLint and `npm run build -- --webpack` pass. Existing repo-wide lint
+findings in the review/calendar/odds files and the older test's missing Nations
+League expectation predate this change; the full legacy test suite is not clean.

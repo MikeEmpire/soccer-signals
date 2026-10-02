@@ -87,7 +87,7 @@ export function DailyReview() {
         <nav className="page-nav" aria-label="Site sections">
           <Link href="/" className="page-nav-link">Live Odds</Link>
           <span className="page-nav-link page-nav-active" aria-current="page">Daily Review</span>
-        </nav>
+        <Link href="/nfl" className="page-nav-link">NFL Props</Link></nav>
 
         {/* League selector */}
         <div className="toolbar">
