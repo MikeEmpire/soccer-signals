@@ -65,12 +65,18 @@ Open `/nfl` (the **NFL Props** navigation tab). **Live** reads the next rolling
 72 hours from `/api/odds/nfl/receiving/`, proxied to the same path on
 `NEXT_PUBLIC_API_BASE_URL`. Receiving yards and receptions cards display the
 backend projection, DraftKings/FanDuel/Bovada lines and matched over/under prices,
-book coverage, projection differences, historical sample sizes and expandable
-baseline/adjustment details. No projections or consensus are computed in the
+a compact eligible signal or neutral backend status, and recent performances.
+Cards show five recent games with expansion to ten, including cross-season and
+playoff history. Each historical line uses DraftKings, then FanDuel, then Bovada
+when available, with the book named and the backend OVER/UNDER/PUSH result.
+Missing past props and actuals stay unavailable; current lines are never used
+as substitutes. The signal badge, projection-versus-consensus comparison and backend reasons lead
+the card. Current book prices and per-book differences remain visible above
+recent performances. Projection calculations are collapsed by default. No projections or consensus are computed in the
 browser. These are research estimates, not betting recommendations.
 
 **Sample preview** is an explicit opt-in, clearly labeled fixed synthetic dataset
-exported from backend tests. It works without a populated backend and never
+based on backend test data with illustrative recent games. It works without a populated backend and never
 replaces a failed or empty live response automatically. The fixture is in
 `src/lib/nfl-receiving-example.json` and contains an illustrative matchup and
 Example Receiver, not a real-player forecast.
@@ -78,11 +84,52 @@ Example Receiver, not a real-player forecast.
 Live data requires the backend odds migrations, upcoming persisted ESPN games,
 verified receiving markets and pregame input captures. The client refreshes
 once per minute while visible and on returning to the tab; refreshing does not
-collect provider data. Expired quotes and failed refreshes hide market
-comparisons. Games without markets, missing captures and transport errors have
+collect provider data. Expired quotes and failed refreshes suppress live comparisons while retaining
+explicitly labeled last-saved prices. Games without markets, missing captures and transport errors have
 separate visible states. With only one book, median/disagreement remain absent.
 
-Run `node --test tests/nfl-receiving.test.cjs` for the seven NFL-specific tests.
-Focused ESLint and `npm run build -- --webpack` pass. Existing repo-wide lint
-findings in the review/calendar/odds files and the older test's missing Nations
-League expectation predate this change; the full legacy test suite is not clean.
+The production V1 client follows every cursor before replacing the displayed slate,
+deduplicates cards, and restarts once on an expired cursor. Prices become last-saved per book
+and side on expiry. Consensus expiry suppresses the live comparison and requests a refresh;
+official predictions retain their frozen line, projection, edge and confidence.
+OVER/UNDER/PASS and unavailable reasons come directly from the backend. Confidence
+is an evidence score, never a win probability. The projection tooltip identifies evidence time separately from response time. Legacy threshold frequency tables and projection diagnostics are omitted.
+
+Historical grades, aggregates and CLV remain in the linked backend staff research
+dashboard at `/admin/odds/nflreceivingofficial/research/`. Authenticate there with
+an existing staff account; no staff credentials are placed in the frontend.
+
+To test locally, configure `NEXT_PUBLIC_API_BASE_URL` for the backend, run
+`npm run dev`, and open `http://localhost:3000/nfl`. Use **Sample preview** for a
+backend-independent UI check, or **Live** for the complete production slate.
+Run `node --test tests/nfl-receiving.test.cjs` for contract and rendering checks.
+Existing repo-wide lint findings in review/calendar/odds and the older test's
+missing Nations League expectation predate this change.
+
+The simplified cards consume additive `recent_games` and `display` fields. Older
+responses show a neutral history-unavailable message. Deploy the updated backend
+and refresh capture frames to populate cross-season/playoff history; old frames
+retain their original scope. Past props depend on already recorded pregame main
+lines and cannot be reconstructed for games before collection began.
+
+Latest saved sportsbook prices use each side's `latest_saved` DTO. Fresh main
+values take precedence; stale prices retain their own threshold, American odds,
+and quote age. Over and under thresholds are displayed separately. Withdrawals
+and invalid timestamps display no price, and a missing side says “No line
+recorded.” A failed request demotes retained quotes to last-saved without changing
+any official prediction. Fresh coverage, consensus and live edges never use saved
+prices. The latest-saved backend deployment is needed to expose stale prices that
+are absent from the older DTO; polling this UI only reads stored data.
+
+Saved comparisons use the backend's `market.saved_comparison` when a fresh
+consensus is unavailable, including its projection and difference. The age label
+uses the oldest included quote; details list the exact books and quote times.
+Per-book saved differences are labeled separately and only accompany their
+matching saved OVER threshold. No consensus or difference is computed locally.
+
+When a current eligible signal (including PASS) is unavailable, a muted
+`last_recorded_signal` can show the original threshold, projection, reasons and
+model version. It is always historical, never current or official, regardless of
+quote expiry. After lock only the official prediction applies; a missing official
+is never replaced with a historical record. These fields require the saved-context
+backend deployment; older responses continue without a fabricated fallback.

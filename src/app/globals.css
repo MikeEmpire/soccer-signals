@@ -439,3 +439,69 @@ button:focus-visible,summary:focus-visible,a:focus-visible { outline:2px solid v
   .receiving-page .section-heading { gap:10px; align-items:flex-start; }
   .receiving-page .section-heading h2 { font-size:20px; }
 }
+
+
+.receiving-matchup { margin:8px 0 0; font-size:12px; color:var(--muted); line-height:1.5; }
+.receiving-current { margin:18px 0; padding-bottom:16px; border-bottom:1px solid var(--soft-line); }
+.receiving-direction { display:block; color:var(--forest); font-size:24px; font-weight:650; font-variant-numeric:tabular-nums; }
+.receiving-status { margin:0; font-size:13px; color:var(--muted); }
+.receiving-estimate { margin:7px 0 0; font-size:12px; color:var(--muted); }
+.receiving-recent h4 { margin:0 0 10px; font-size:13px; }
+.receiving-history { width:100%; table-layout:fixed; border-collapse:collapse; font-size:12px; font-variant-numeric:tabular-nums; }
+.receiving-history th,.receiving-history td { padding:10px 4px; border-bottom:1px solid var(--soft-line); text-align:right; overflow-wrap:anywhere; }
+.receiving-history th:first-child { width:40%; text-align:left; padding-left:0; }
+.receiving-history th:nth-child(2) { width:14%; }
+.receiving-history th:nth-child(3) { width:26%; }
+.receiving-history th:nth-child(4) { width:20%; }
+.receiving-history thead { font-size:10px; color:var(--muted); }
+.receiving-history tbody th { font-weight:400; }
+.receiving-history time,.receiving-history small,.receiving-history tbody th span { display:block; }
+.receiving-history time,.receiving-history small { color:var(--muted); font-size:10px; line-height:1.5; }
+.receiving-history tbody th span { margin-top:3px; line-height:1.4; }
+.receiving-result { font-size:10px; font-weight:600; }
+.receiving-show-games { margin-top:12px; border:0; background:none; padding:6px 0; color:var(--forest); font-size:12px; font-weight:600; cursor:pointer; }
+.receiving-show-games:focus-visible,.receiving-details summary:focus-visible { outline:2px solid var(--green); outline-offset:4px; }
+@media (max-width:400px) {
+  .receiving-card { padding:14px; }
+  .receiving-history { font-size:11px; }
+  .receiving-history th,.receiving-history td { padding-right:2px; padding-left:2px; }
+}
+@media (max-width:600px) {
+  .receiving-toolbar .filter-shell button,
+  .receiving-toolbar .filter-shell button:first-child { flex:1 1 auto; padding:9px 7px; }
+}
+
+.receiving-card-heading .receiving-direction { flex-shrink:0; padding:7px 10px; border-radius:8px; background:#eaf4e7; font-size:15px; white-space:nowrap; }
+.receiving-card-heading > div { min-width:0; }
+.receiving-comparison { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin:16px 0; }
+.receiving-comparison span { display:block; font-size:10px; color:var(--muted); margin-bottom:6px; }
+.receiving-comparison strong { color:var(--forest); font-size:22px; font-variant-numeric:tabular-nums; }
+.receiving-comparison small { font-size:11px; font-weight:400; }
+.receiving-reasons h4,.receiving-current-prices h4 { margin:0 0 8px; font-size:12px; }
+.receiving-reasons ul { padding-left:16px; margin:0; color:var(--muted); font-size:12px; line-height:1.6; }
+.receiving-reasons li + li { margin-top:4px; }
+.receiving-current-prices { margin-bottom:22px; }
+.receiving-current-prices h4 span { color:var(--muted); font-weight:400; }
+@media (max-width:400px) {
+  .receiving-card-heading .receiving-direction { padding:6px 8px; font-size:12px; }
+  .receiving-current-prices .receiving-books { font-size:11px; }
+  .receiving-current-prices .receiving-books th,.receiving-current-prices .receiving-books td { padding-left:2px; padding-right:2px; }
+}
+
+.receiving-book-status { display:block; font-size:9px; font-weight:400; color:var(--muted); margin-top:4px; }
+
+.receiving-saved-books { table-layout:fixed; }
+.receiving-saved-books th:first-child { width:28%; overflow-wrap:anywhere; }
+.receiving-saved-books th:last-child { width:17%; }
+.receiving-quote strong,.receiving-quote-odds,.receiving-quote small { display:block; }
+.receiving-quote-odds { margin:4px 0; }
+.receiving-quote small { font-size:9px; line-height:1.5; font-weight:400; color:var(--muted); }
+.receiving-quote-fresh strong { color:var(--forest); }
+.receiving-quote-stale { color:#796226; }
+
+.receiving-saved-context,.receiving-recorded { font-size:11px; color:var(--muted); line-height:1.6; margin:12px 0; }
+.receiving-saved-context summary,.receiving-recorded summary { cursor:pointer; }
+.receiving-saved-context ul,.receiving-recorded ul { padding-left:16px; }
+.receiving-recorded { border-left:2px solid var(--soft-line); padding:4px 0 4px 12px; }
+.receiving-recorded p { margin:4px 0; }
+.receiving-recorded small { display:block; overflow-wrap:anywhere; }

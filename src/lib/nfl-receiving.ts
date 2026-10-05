@@ -2,24 +2,113 @@ export type Numeric = number | string | null;
 export type Prop = "receiving_yards" | "receptions";
 export const NFL_BOOKS = ["draftkings", "fanduel", "bovada"] as const;
 export const PROP_LABELS = { receiving_yards: "Receiving yards", receptions: "Receptions" };
+export interface ReceivingSignal {
+  version?: string; direction: "OVER" | "UNDER" | "PASS"; status: "eligible" | "unavailable";
+  projection?: Numeric; threshold?: Numeric; edge?: Numeric; edge_pct?: Numeric;
+  confidence: Numeric; confidence_components?: Record<string, Numeric>;
+  confidence_interpretation?: string; threshold_is_offered?: boolean; threshold_interpretation?: string;
+  reasons: { code: string; text: string }[];
+  data_quality?: { gaps: string[]; sample_size: number; books_available: number; verified_mapping: boolean; missing_volume: boolean };
+}
 export interface Stats {
   available?: boolean; games_available?: number; games_observed?: number;
-  mean?: Numeric; median?: Numeric; stddev?: Numeric; cv?: Numeric; iqr?: Numeric;
+  sample_size?: number; min?: Numeric; max?: Numeric; range?: Numeric; mean?: Numeric; median?: Numeric; stddev?: Numeric; cv?: Numeric; iqr?: Numeric;
+}
+export interface PastProp {
+  bookmaker: string; bookmaker_name: string; line: Numeric;
+  observed_at?: string | null; source?: string; result: "OVER" | "UNDER" | "PUSH" | null;
+}
+export interface RecentGame {
+  game_id: string | null; kickoff: string; season?: number | null; season_type?: number | null;
+  opponent_id?: string | null; opponent: string | null; home_away?: string | null;
+  receiving_yards?: Numeric; receptions?: Numeric; targets?: Numeric; value: Numeric; props: PastProp[];
+}
+export function selectPastProp(props: PastProp[], preferredBook?: string) {
+  const order = preferredBook ? [preferredBook, ...NFL_BOOKS] : NFL_BOOKS;
+  return order.map(book => props.find(prop => prop.bookmaker === book && prop.line != null)).find(Boolean);
+}
+export interface SavedQuote {
+  status: "fresh" | "stale" | "withdrawn" | "invalid_timestamp";
+  line: Numeric; american_odds: Numeric; last_seen_at: string | null;
+  provider_updated_at?: string | null; expires_at: string | null;
+  snapshot_id?: number | string; stale_reasons?: string[];
+}
+export interface ReceivingBook {
+  id: string; name: string; line: Numeric; over_odds: Numeric; under_odds: Numeric;
+  last_seen_at: string | null; edge: Numeric; saved_edge?: Numeric; expires_at?: string | null;
+  over_expires_at?: string | null; under_expires_at?: string | null;
+  latest_saved?: { over: SavedQuote | null; under: SavedQuote | null } | null;
+}
+export interface DisplayQuote {
+  status: "fresh" | "stale" | "withdrawn" | "invalid_timestamp" | "missing";
+  line: Numeric; odds: Numeric; observedAt: string | null; providerUpdatedAt?: string | null;
+  staleReasons: string[];
+}
+// Presentation only: saved sides never contribute to the live consensus or signal.
+export function displayBookSide(book: ReceivingBook | undefined, side: "over" | "under", now: number, outdated = false, sample = false): DisplayQuote {
+  const missing: DisplayQuote = { status: "missing", line: null, odds: null, observedAt: null, staleReasons: [] };
+  if (!book) return missing;
+  const saved = book.latest_saved?.[side];
+  // A withdrawal or invalid observation supersedes any older browser-held value.
+  if (saved?.status === "withdrawn" || saved?.status === "invalid_timestamp") return { ...missing, status: saved.status };
+  const odds = book[`${side}_odds`];
+  const expires = book[`${side}_expires_at`];
+  const direct = book.line != null && odds != null;
+  if (direct && !outdated && (sample || deadlineIsCurrent(expires, now))) {
+    return { status: "fresh", line: book.line, odds, observedAt: side === "over" ? book.last_seen_at : saved?.line === book.line ? saved.last_seen_at : null, staleReasons: [] };
+  }
+  if (saved && saved.line != null && saved.american_odds != null) {
+    return { status: !outdated && saved.status === "fresh" && deadlineIsCurrent(saved.expires_at, now) ? "fresh" : "stale",
+      line: saved.line, odds: saved.american_odds, observedAt: saved.last_seen_at,
+      providerUpdatedAt: saved.provider_updated_at, staleReasons: saved.stale_reasons ?? [] };
+  }
+  // Older responses have no saved-side DTO. Retain their known paired quote on
+  // local expiry/error, but never resurrect it when a newer response clears it.
+  if (direct && book.latest_saved === undefined) return { status: "stale", line: book.line, odds,
+    observedAt: side === "over" ? book.last_seen_at : null, staleReasons: [] };
+  return missing;
+}
+export function quoteAge(timestamp: string | null | undefined, now: number) {
+  if (!timestamp || !Number.isFinite(Date.parse(timestamp)) || Date.parse(timestamp) > now) return "Age unavailable";
+  const minutes = Math.floor((now - Date.parse(timestamp)) / 60000);
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1440) return `${Math.floor(minutes / 60)}h ago`;
+  return `${Math.floor(minutes / 1440)}d ago`;
+}
+export interface SavedComparison {
+  source: "latest_saved_main_lines"; status: "fresh" | "stale";
+  median_line: Numeric; projection: Numeric; edge_vs_median: Numeric;
+  books_available: number; books: (SavedQuote & { bookmaker: string })[];
+  oldest_observed_at: string | null; newest_observed_at: string | null;
+  expires_at: string | null; projection_observed_at: string | null;
+}
+export interface RecordedSignal {
+  prediction_id: number | string; version: string; recorded_at: string;
+  status: "historical"; is_current: false; signal: ReceivingSignal;
+  main_lines: Record<string, Numeric>; market_expires_at: string | null; market_is_stale: boolean;
 }
 export interface ReceivingCard {
   id: string; game_id: string; player: { id: string; name: string }; prop: Prop;
   available: boolean; reason: string | null; input_observed_at: string | null;
+  recent_games?: { label: string; scope: string; observed_at: string | null; total_available: number; games: RecentGame[] } | null;
+  display?: { state: string; label: string; description?: string; show_confidence?: boolean; show_market_table?: boolean } | null;
+  last_recorded_signal?: RecordedSignal | null;
+  signal?: ReceivingSignal; live_signal?: ReceivingSignal | null; lock_at?: string;
+  official_prediction?: { id: number; prediction_id: number; lock_at: string; recorded_at: string; signal: ReceivingSignal } | null;
   projection: { baseline?: Numeric; opportunity_adjustment?: Numeric; opponent_adjustment?: Numeric;
     final?: Numeric; components?: Record<string, { value: Numeric; games: number; effective_weight: Numeric; used: boolean }> };
-  market: { books_expected: number; books_available: number; median_line: Numeric; line_range: Numeric;
-    expires_at?: string | null;
-    books: { id: string; name: string; line: Numeric; over_odds: Numeric; under_odds: Numeric; last_seen_at: string | null; edge: Numeric }[] };
+  market: { books_expected: number; books_available: number; books_with_saved_prices?: number; median_line: Numeric; line_range: Numeric;
+    expires_at?: string | null; consensus_expires_at?: string | null;
+    saved_comparison?: SavedComparison | null;
+    books: ReceivingBook[] };
   edge_vs_median: Numeric; history: Record<string, Record<string, Stats>>;
   opportunity: { trend?: Record<string, Numeric> }; volatility: Stats;
   hit_rates: Record<string, Record<string, { over: number; under: number; push: number; sample_size: number; over_rate_excluding_pushes: Numeric }>>;
   data_gaps: string[];
 }
 export interface ReceivingFeed {
+  api_version?: string; total_count?: number; next_cursor?: string | null;
   generated_at: string; window_start: string; window_end: string; window_hours: number;
   game_count: number; count: number; projection_count: number; truncated: boolean;
   games: { id: string; name: string; kickoff: string }[]; signals: ReceivingCard[];
@@ -33,21 +122,103 @@ export function numberLabel(value: Numeric | undefined, signed = false) {
 export function marketIsCurrent(card: ReceivingCard, now: number) {
   return Boolean(card.market.expires_at && Date.parse(card.market.expires_at) > now);
 }
+export function deadlineIsCurrent(deadline: string | null | undefined, now: number) {
+  return Boolean(deadline && Date.parse(deadline) > now);
+}
+export function consensusIsCurrent(card: ReceivingCard, now: number) {
+  return card.market.books_available >= 2 && deadlineIsCurrent(card.market.consensus_expires_at, now);
+}
+// Normalize decimal fields without touching IDs, timestamps, or canonical threshold keys.
+const numericKeys = new Set(["baseline", "opportunity_adjustment", "opponent_adjustment", "final", "value", "effective_weight", "configured_weight", "median_line", "line_range", "line", "over_odds", "under_odds", "edge", "edge_vs_median", "saved_edge", "projection", "threshold", "edge_pct", "confidence", "mean", "median", "stddev", "cv", "iqr", "min", "max", "range", "over_rate_excluding_pushes", "closing_line", "clv", "actual", "american_odds", "receiving_yards", "receptions", "targets"]);
+export function normalizeNumeric(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value !== "number" && typeof value !== "string") throw new Error("The NFL service returned an unexpected response.");
+  const number = Number(value);
+  if (!Number.isFinite(number) || (typeof value === "string" && !value.trim())) throw new Error("The NFL service returned an unexpected response.");
+  return number;
+}
+function normalize(value: unknown, key = "", parent = ""): unknown {
+  if (Array.isArray(value)) return value.map(item => normalize(item, key));
+  if (value !== null && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, normalize(v, k, key)]));
+  return numericKeys.has(key) || parent === "main_lines" || parent === "trend" || parent === "confidence_components" ? normalizeNumeric(value) : value;
+}
+function validSavedQuotes(book: ReceivingBook) {
+  if (!book || typeof book.id !== "string") return false;
+  if (book.latest_saved == null) return true;
+  return ["over", "under"].every(side => {
+    const quote = book.latest_saved?.[side as "over" | "under"];
+    return quote == null || (["fresh", "stale", "withdrawn", "invalid_timestamp"].includes(quote.status)
+      && (quote.stale_reasons == null || (Array.isArray(quote.stale_reasons) && quote.stale_reasons.every(reason => typeof reason === "string"))));
+  });
+}
+function validRecentGames(recent: ReceivingCard["recent_games"]) {
+  return recent == null || (Array.isArray(recent.games) && recent.games.every(game => game
+    && typeof game.kickoff === "string" && Number.isFinite(Date.parse(game.kickoff))
+    && (game.opponent == null || typeof game.opponent === "string")
+    && Array.isArray(game.props) && game.props.every(prop => prop && typeof prop.bookmaker === "string"
+      && typeof prop.bookmaker_name === "string" && (prop.result == null || ["OVER", "UNDER", "PUSH"].includes(prop.result)))));
+}
+function validSignal(signal: ReceivingSignal | null | undefined) {
+  return !signal || (["OVER", "UNDER", "PASS"].includes(signal.direction) && ["eligible", "unavailable"].includes(signal.status)
+    && Array.isArray(signal.reasons) && signal.reasons.every(reason => typeof reason.code === "string" && typeof reason.text === "string"));
+}
+function validSavedContext(card: ReceivingCard) {
+  const comparison = card.market.saved_comparison;
+  const record = card.last_recorded_signal;
+  return (comparison == null || (comparison.source === "latest_saved_main_lines"
+    && ["fresh", "stale"].includes(comparison.status) && comparison.books_available >= 2
+    && Array.isArray(comparison.books) && comparison.books.every(book => book && typeof book.bookmaker === "string")))
+    && (record == null || (record.status === "historical" && record.is_current === false
+      && typeof record.version === "string" && Number.isFinite(Date.parse(record.recorded_at))
+      && Boolean(record.signal) && validSignal(record.signal) && record.signal.status === "eligible"
+      && record.main_lines != null && typeof record.main_lines === "object" && !Array.isArray(record.main_lines)));
+}
 export function parseReceivingFeed(value: unknown): ReceivingFeed {
-  if (!value || typeof value !== "object") throw new Error("The NFL service returned an unexpected response.");
-  const data = value as Partial<ReceivingFeed>;
-  if (![48, 72].includes(data.window_hours ?? 0) || !Array.isArray(data.games) || !Array.isArray(data.signals)
+  const data = normalize(value) as ReceivingFeed;
+  if (!data || ![48, 72].includes(data.window_hours) || !Array.isArray(data.games) || !Array.isArray(data.signals)
       || !data.generated_at || !Number.isFinite(Date.parse(data.generated_at))
-      || data.signals.some(card => !card || !(card.prop in PROP_LABELS) || !card.player
-        || !card.projection || !card.market || !Array.isArray(card.market.books)
-        || !card.history || !card.opportunity || !card.volatility)
+      || (data.next_cursor != null && typeof data.next_cursor !== "string")
+      || data.signals.some(card => !card || !card.id || !card.game_id || !Object.hasOwn(PROP_LABELS, card.prop) || !card.player
+        || !card.projection || !card.market || !Array.isArray(card.market.books) || !card.market.books.every(validSavedQuotes)
+        || !card.history || !card.opportunity || !card.volatility || !validSignal(card.signal)
+        || !validSavedContext(card) || !validRecentGames(card.recent_games)
+        || (card.display != null && (typeof card.display.state !== "string" || typeof card.display.label !== "string"))
+        || !validSignal(card.live_signal) || !validSignal(card.official_prediction?.signal))
       || data.games.some(game => !game || !game.id || !Number.isFinite(Date.parse(game.kickoff)))) {
     throw new Error("The NFL service returned an unexpected response.");
   }
-  return data as ReceivingFeed;
+  return data;
 }
 export async function loadReceivingFeed(signal?: AbortSignal): Promise<ReceivingFeed> {
-  const response = await fetch("/api/odds/nfl/receiving/", { cache: "no-store", signal });
-  if (!response.ok) throw new Error("NFL research is unavailable. Try refreshing shortly.");
-  return parseReceivingFeed(await response.json());
+  // One restart allows expired cursors to recover without an infinite retry loop.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let cursor: string | null = null;
+    let first: ReceivingFeed | undefined;
+    const cards = new Map<string, ReceivingCard>();
+    const games = new Map<string, ReceivingFeed["games"][number]>();
+    const visited = new Set<string>();
+    do {
+      signal?.throwIfAborted();
+      const params = new URLSearchParams({ limit: "100" });
+      if (cursor) params.set("cursor", cursor);
+      const response = await fetch(`/api/odds/nfl/receiving/?${params}`, { cache: "no-store", signal });
+      if (response.status === 400 && cursor && attempt === 0) break;
+      if (!response.ok) throw new Error("NFL research is unavailable. Try refreshing shortly.");
+      const page = parseReceivingFeed(await response.json());
+      signal?.throwIfAborted();
+      first ??= page;
+      page.games.forEach(game => games.set(game.id, game));
+      page.signals.forEach(card => cards.set(card.id, card));
+      cursor = page.next_cursor ?? null;
+      if (cursor && visited.has(cursor)) throw new Error("The NFL service returned a repeated cursor.");
+      if (cursor) visited.add(cursor);
+      if (!cursor) {
+        if (page.truncated) throw new Error("The NFL service returned an incomplete slate. Try refreshing shortly.");
+        const signals = [...cards.values()].sort((a, b) => a.player.name.localeCompare(b.player.name) || a.prop.localeCompare(b.prop) || a.id.localeCompare(b.id));
+        return { ...first, games: [...games.values()].sort((a, b) => Date.parse(a.kickoff) - Date.parse(b.kickoff)), signals,
+          game_count: games.size, count: signals.length, projection_count: signals.filter(card => card.available).length, truncated: false, next_cursor: null };
+      }
+    } while (cursor);
+  }
+  throw new Error("NFL research is unavailable. Try refreshing shortly.");
 }

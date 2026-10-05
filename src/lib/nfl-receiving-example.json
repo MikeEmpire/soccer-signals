@@ -97,7 +97,29 @@
             "over_odds": -110,
             "under_odds": -110,
             "last_seen_at": "2026-09-30T16:55:00Z",
-            "edge": "22.2500"
+            "edge": "22.2500",
+            "latest_saved": {
+              "over": {
+                "status": "fresh",
+                "line": "40.5000",
+                "american_odds": -110,
+                "last_seen_at": "2026-09-30T16:55:00Z",
+                "provider_updated_at": "2026-09-30T16:55:00Z",
+                "expires_at": "2026-09-30T17:15:00Z",
+                "snapshot_id": "sample-0-0-over",
+                "stale_reasons": []
+              },
+              "under": {
+                "status": "fresh",
+                "line": "40.5000",
+                "american_odds": -110,
+                "last_seen_at": "2026-09-30T16:55:00Z",
+                "provider_updated_at": "2026-09-30T16:55:00Z",
+                "expires_at": "2026-09-30T17:15:00Z",
+                "snapshot_id": "sample-0-0-under",
+                "stale_reasons": []
+              }
+            }
           },
           {
             "id": "fanduel",
@@ -106,7 +128,29 @@
             "over_odds": -110,
             "under_odds": -110,
             "last_seen_at": "2026-09-30T16:55:00Z",
-            "edge": "12.2500"
+            "edge": "12.2500",
+            "latest_saved": {
+              "over": {
+                "status": "fresh",
+                "line": "50.5000",
+                "american_odds": -110,
+                "last_seen_at": "2026-09-30T16:55:00Z",
+                "provider_updated_at": "2026-09-30T16:55:00Z",
+                "expires_at": "2026-09-30T17:15:00Z",
+                "snapshot_id": "sample-0-1-over",
+                "stale_reasons": []
+              },
+              "under": {
+                "status": "fresh",
+                "line": "50.5000",
+                "american_odds": -110,
+                "last_seen_at": "2026-09-30T16:55:00Z",
+                "provider_updated_at": "2026-09-30T16:55:00Z",
+                "expires_at": "2026-09-30T17:15:00Z",
+                "snapshot_id": "sample-0-1-under",
+                "stale_reasons": []
+              }
+            }
           },
           {
             "id": "bovada",
@@ -115,13 +159,36 @@
             "over_odds": -110,
             "under_odds": -110,
             "last_seen_at": "2026-09-30T16:55:00Z",
-            "edge": "2.2500"
+            "edge": "2.2500",
+            "latest_saved": {
+              "over": {
+                "status": "fresh",
+                "line": "60.5000",
+                "american_odds": -110,
+                "last_seen_at": "2026-09-30T16:55:00Z",
+                "provider_updated_at": "2026-09-30T16:55:00Z",
+                "expires_at": "2026-09-30T17:15:00Z",
+                "snapshot_id": "sample-0-2-over",
+                "stale_reasons": []
+              },
+              "under": {
+                "status": "fresh",
+                "line": "60.5000",
+                "american_odds": -110,
+                "last_seen_at": "2026-09-30T16:55:00Z",
+                "provider_updated_at": "2026-09-30T16:55:00Z",
+                "expires_at": "2026-09-30T17:15:00Z",
+                "snapshot_id": "sample-0-2-under",
+                "stale_reasons": []
+              }
+            }
           }
         ],
         "median_line": "50.5000",
         "line_range": "20.0000",
         "expires_at": "2026-09-30T17:15:00Z",
-        "line_standard_deviation": "8.164965809277260327324280249"
+        "line_standard_deviation": "8.164965809277260327324280249",
+        "books_with_saved_prices": 3
       },
       "edge_vs_median": "12.2500",
       "history": {
@@ -851,7 +918,209 @@
         "Legacy rows are first known at capture time, not their game date",
         "Missing receiving row is not inferred to be a zero-target appearance",
         "Mutable season totals/splits are excluded; splits are derived from captured games"
-      ]
+      ],
+      "lock_at": "2026-09-30T17:00:00Z",
+      "signal": {
+        "direction": "OVER",
+        "status": "eligible",
+        "projection": "62.7500",
+        "threshold": "50.5000",
+        "edge": "12.2500",
+        "edge_pct": 11.1,
+        "confidence": 75,
+        "threshold_is_offered": false,
+        "reasons": [
+          {
+            "code": "projection_edge",
+            "text": "Projection is 12.25 yards above the main-line consensus."
+          },
+          {
+            "code": "book_coverage",
+            "text": "All three supported sportsbooks have fresh main lines."
+          }
+        ],
+        "data_quality": {
+          "sample_size": 10,
+          "gaps": [],
+          "books_available": 3,
+          "verified_mapping": true,
+          "missing_volume": false
+        }
+      },
+      "live_signal": {
+        "direction": "OVER",
+        "status": "eligible",
+        "projection": "62.7500",
+        "threshold": "50.5000",
+        "edge": "12.2500",
+        "edge_pct": 11.1,
+        "confidence": 75,
+        "threshold_is_offered": false,
+        "reasons": [
+          {
+            "code": "projection_edge",
+            "text": "Projection is 12.25 yards above the main-line consensus."
+          },
+          {
+            "code": "book_coverage",
+            "text": "All three supported sportsbooks have fresh main lines."
+          }
+        ],
+        "data_quality": {
+          "sample_size": 10,
+          "gaps": [],
+          "books_available": 3,
+          "verified_mapping": true,
+          "missing_volume": false
+        }
+      },
+      "official_prediction": null,
+      "display": {
+        "state": "signal",
+        "label": "Over signal",
+        "show_confidence": false,
+        "show_market_table": true
+      },
+      "recent_games": {
+        "label": "Recent recorded receiving games",
+        "scope": "last_10_regular_and_postseason",
+        "observed_at": "2026-09-30T16:55:00Z",
+        "total_available": 10,
+        "games": [
+          {
+            "game_id": "sample-0",
+            "kickoff": "2026-09-27T18:00:00Z",
+            "season": 2026,
+            "season_type": 2,
+            "opponent": "Example Hawks",
+            "home_away": "away",
+            "value": 82,
+            "props": [
+              {
+                "bookmaker": "draftkings",
+                "bookmaker_name": "DraftKings",
+                "line": 60,
+                "source": "last_recorded_pregame_main_line",
+                "result": "OVER"
+              }
+            ]
+          },
+          {
+            "game_id": "sample-1",
+            "kickoff": "2026-09-20T18:00:00Z",
+            "season": 2026,
+            "season_type": 2,
+            "opponent": "Example Bears",
+            "home_away": "home",
+            "value": 34,
+            "props": [
+              {
+                "bookmaker": "draftkings",
+                "bookmaker_name": "DraftKings",
+                "line": 60,
+                "source": "last_recorded_pregame_main_line",
+                "result": "UNDER"
+              }
+            ]
+          },
+          {
+            "game_id": "sample-2",
+            "kickoff": "2026-09-13T18:00:00Z",
+            "season": 2026,
+            "season_type": 2,
+            "opponent": "Example Lions",
+            "home_away": "away",
+            "value": 60,
+            "props": [
+              {
+                "bookmaker": "draftkings",
+                "bookmaker_name": "DraftKings",
+                "line": 60,
+                "source": "last_recorded_pregame_main_line",
+                "result": "PUSH"
+              }
+            ]
+          },
+          {
+            "game_id": "sample-3",
+            "kickoff": "2026-01-18T18:00:00Z",
+            "season": 2025,
+            "season_type": 3,
+            "opponent": "Example Wolves",
+            "home_away": "home",
+            "value": null,
+            "props": [
+              {
+                "bookmaker": "draftkings",
+                "bookmaker_name": "DraftKings",
+                "line": 60,
+                "source": "last_recorded_pregame_main_line",
+                "result": null
+              }
+            ]
+          },
+          {
+            "game_id": "sample-4",
+            "kickoff": "2026-01-11T18:00:00Z",
+            "season": 2025,
+            "season_type": 3,
+            "opponent": "Example Foxes",
+            "home_away": "away",
+            "value": 71,
+            "props": []
+          },
+          {
+            "game_id": "sample-5",
+            "kickoff": "2026-01-04T18:00:00Z",
+            "season": 2025,
+            "season_type": 2,
+            "opponent": "Example Owls",
+            "home_away": "home",
+            "value": 42,
+            "props": []
+          },
+          {
+            "game_id": "sample-6",
+            "kickoff": "2025-12-28T18:00:00Z",
+            "season": 2025,
+            "season_type": 2,
+            "opponent": "Example Bulls",
+            "home_away": "away",
+            "value": 66,
+            "props": []
+          },
+          {
+            "game_id": "sample-7",
+            "kickoff": "2025-12-21T18:00:00Z",
+            "season": 2025,
+            "season_type": 2,
+            "opponent": "Example Rams",
+            "home_away": "home",
+            "value": 51,
+            "props": []
+          },
+          {
+            "game_id": "sample-8",
+            "kickoff": "2025-12-14T18:00:00Z",
+            "season": 2025,
+            "season_type": 2,
+            "opponent": "Example Tigers",
+            "home_away": "away",
+            "value": 79,
+            "props": []
+          },
+          {
+            "game_id": "sample-9",
+            "kickoff": "2025-12-07T18:00:00Z",
+            "season": 2025,
+            "season_type": 2,
+            "opponent": "Example Eagles",
+            "home_away": "home",
+            "value": 38,
+            "props": []
+          }
+        ]
+      }
     },
     {
       "id": "target:receiver:receptions",
@@ -916,42 +1185,181 @@
       },
       "market": {
         "books_expected": 3,
-        "books_available": 3,
+        "books_available": 0,
         "books": [
           {
             "id": "draftkings",
             "name": "DraftKings",
-            "line": "4.0500",
-            "over_odds": -110,
-            "under_odds": -110,
+            "line": null,
+            "over_odds": null,
+            "under_odds": null,
             "last_seen_at": "2026-09-30T16:55:00Z",
-            "edge": "2.2250"
+            "edge": null,
+            "latest_saved": {
+              "over": {
+                "status": "stale",
+                "line": "4.0500",
+                "american_odds": -110,
+                "last_seen_at": "2026-09-30T15:55:00Z",
+                "provider_updated_at": "2026-09-30T15:35:00Z",
+                "expires_at": "2026-09-30T15:55:00Z",
+                "snapshot_id": "sample-1-0-over",
+                "stale_reasons": [
+                  "collection_overdue",
+                  "provider_update_old"
+                ]
+              },
+              "under": {
+                "status": "stale",
+                "line": "5.05",
+                "american_odds": -110,
+                "last_seen_at": "2026-09-30T15:55:00Z",
+                "provider_updated_at": "2026-09-30T15:35:00Z",
+                "expires_at": "2026-09-30T15:55:00Z",
+                "snapshot_id": "sample-1-0-under",
+                "stale_reasons": [
+                  "collection_overdue",
+                  "provider_update_old"
+                ]
+              }
+            },
+            "expires_at": null,
+            "over_expires_at": null,
+            "under_expires_at": null,
+            "saved_edge": "2.225"
           },
           {
             "id": "fanduel",
             "name": "FanDuel",
-            "line": "5.0500",
-            "over_odds": -110,
-            "under_odds": -110,
+            "line": null,
+            "over_odds": null,
+            "under_odds": null,
             "last_seen_at": "2026-09-30T16:55:00Z",
-            "edge": "1.2250"
+            "edge": null,
+            "latest_saved": {
+              "over": {
+                "status": "stale",
+                "line": "5.0500",
+                "american_odds": -110,
+                "last_seen_at": "2026-09-30T15:55:00Z",
+                "provider_updated_at": "2026-09-30T15:35:00Z",
+                "expires_at": "2026-09-30T15:55:00Z",
+                "snapshot_id": "sample-1-1-over",
+                "stale_reasons": [
+                  "collection_overdue",
+                  "provider_update_old"
+                ]
+              },
+              "under": {
+                "status": "withdrawn",
+                "line": null,
+                "american_odds": null,
+                "last_seen_at": "2026-09-30T15:55:00Z",
+                "provider_updated_at": "2026-09-30T15:35:00Z",
+                "expires_at": "2026-09-30T15:55:00Z",
+                "snapshot_id": "sample-1-1-under",
+                "stale_reasons": []
+              }
+            },
+            "expires_at": null,
+            "over_expires_at": null,
+            "under_expires_at": null,
+            "saved_edge": "1.225"
           },
           {
             "id": "bovada",
             "name": "Bovada",
-            "line": "6.0500",
-            "over_odds": -110,
-            "under_odds": -110,
+            "line": null,
+            "over_odds": null,
+            "under_odds": null,
             "last_seen_at": "2026-09-30T16:55:00Z",
-            "edge": "0.2250"
+            "edge": null,
+            "latest_saved": {
+              "over": {
+                "status": "stale",
+                "line": "6.0500",
+                "american_odds": -110,
+                "last_seen_at": "2026-09-30T15:55:00Z",
+                "provider_updated_at": "2026-09-30T15:35:00Z",
+                "expires_at": "2026-09-30T15:55:00Z",
+                "snapshot_id": "sample-1-2-over",
+                "stale_reasons": [
+                  "collection_overdue",
+                  "provider_update_old"
+                ]
+              },
+              "under": null
+            },
+            "expires_at": null,
+            "over_expires_at": null,
+            "under_expires_at": null,
+            "saved_edge": "0.225"
           }
         ],
-        "median_line": "5.0500",
+        "median_line": null,
         "line_range": "2.0000",
-        "expires_at": "2026-09-30T17:15:00Z",
-        "line_standard_deviation": "0.8164965809277260327324280249"
+        "expires_at": null,
+        "line_standard_deviation": "0.8164965809277260327324280249",
+        "books_with_saved_prices": 3,
+        "consensus_expires_at": null,
+        "saved_comparison": {
+          "source": "latest_saved_main_lines",
+          "status": "stale",
+          "median_line": "5.05",
+          "projection": "6.275",
+          "edge_vs_median": "1.225",
+          "books_available": 3,
+          "books": [
+            {
+              "status": "stale",
+              "line": "4.0500",
+              "american_odds": -110,
+              "last_seen_at": "2026-09-30T15:55:00Z",
+              "provider_updated_at": "2026-09-30T15:35:00Z",
+              "expires_at": "2026-09-30T15:55:00Z",
+              "snapshot_id": "sample-1-0-over",
+              "stale_reasons": [
+                "collection_overdue",
+                "provider_update_old"
+              ],
+              "bookmaker": "draftkings"
+            },
+            {
+              "status": "stale",
+              "line": "5.0500",
+              "american_odds": -110,
+              "last_seen_at": "2026-09-30T15:55:00Z",
+              "provider_updated_at": "2026-09-30T15:35:00Z",
+              "expires_at": "2026-09-30T15:55:00Z",
+              "snapshot_id": "sample-1-1-over",
+              "stale_reasons": [
+                "collection_overdue",
+                "provider_update_old"
+              ],
+              "bookmaker": "fanduel"
+            },
+            {
+              "status": "stale",
+              "line": "6.0500",
+              "american_odds": -110,
+              "last_seen_at": "2026-09-30T15:55:00Z",
+              "provider_updated_at": "2026-09-30T15:35:00Z",
+              "expires_at": "2026-09-30T15:55:00Z",
+              "snapshot_id": "sample-1-2-over",
+              "stale_reasons": [
+                "collection_overdue",
+                "provider_update_old"
+              ],
+              "bookmaker": "bovada"
+            }
+          ],
+          "oldest_observed_at": "2026-09-30T15:55:00Z",
+          "newest_observed_at": "2026-09-30T15:55:00Z",
+          "expires_at": "2026-09-30T15:55:00Z",
+          "projection_observed_at": "2026-09-30T16:55:00Z"
+        }
       },
-      "edge_vs_median": "1.2250",
+      "edge_vs_median": null,
       "history": {
         "yards": {
           "season": {
@@ -1679,8 +2087,220 @@
         "Legacy rows are first known at capture time, not their game date",
         "Missing receiving row is not inferred to be a zero-target appearance",
         "Mutable season totals/splits are excluded; splits are derived from captured games"
-      ]
+      ],
+      "lock_at": "2026-09-30T17:00:00Z",
+      "signal": {
+        "direction": "PASS",
+        "status": "unavailable",
+        "projection": "6.2750",
+        "threshold": null,
+        "edge": null,
+        "edge_pct": null,
+        "confidence": 60,
+        "threshold_is_offered": false,
+        "reasons": [
+          {
+            "code": "insufficient_fresh_main_books",
+            "text": "More sportsbook coverage needed."
+          }
+        ]
+      },
+      "live_signal": {
+        "direction": "PASS",
+        "status": "unavailable",
+        "projection": "6.2750",
+        "threshold": null,
+        "edge": null,
+        "edge_pct": null,
+        "confidence": 60,
+        "threshold_is_offered": false,
+        "reasons": [
+          {
+            "code": "insufficient_fresh_main_books",
+            "text": "More sportsbook coverage needed."
+          }
+        ]
+      },
+      "official_prediction": null,
+      "display": {
+        "state": "awaiting_odds",
+        "label": "No fresh odds available",
+        "show_confidence": false,
+        "show_market_table": true
+      },
+      "recent_games": {
+        "label": "Recent recorded receiving games",
+        "scope": "last_10_regular_and_postseason",
+        "observed_at": "2026-09-30T16:55:00Z",
+        "total_available": 10,
+        "games": [
+          {
+            "game_id": "sample-0",
+            "kickoff": "2026-09-27T18:00:00Z",
+            "season": 2026,
+            "season_type": 2,
+            "opponent": "Example Hawks",
+            "home_away": "away",
+            "value": 7,
+            "props": [
+              {
+                "bookmaker": "draftkings",
+                "bookmaker_name": "DraftKings",
+                "line": 5,
+                "source": "last_recorded_pregame_main_line",
+                "result": "OVER"
+              }
+            ]
+          },
+          {
+            "game_id": "sample-1",
+            "kickoff": "2026-09-20T18:00:00Z",
+            "season": 2026,
+            "season_type": 2,
+            "opponent": "Example Bears",
+            "home_away": "home",
+            "value": 3,
+            "props": [
+              {
+                "bookmaker": "draftkings",
+                "bookmaker_name": "DraftKings",
+                "line": 5,
+                "source": "last_recorded_pregame_main_line",
+                "result": "UNDER"
+              }
+            ]
+          },
+          {
+            "game_id": "sample-2",
+            "kickoff": "2026-09-13T18:00:00Z",
+            "season": 2026,
+            "season_type": 2,
+            "opponent": "Example Lions",
+            "home_away": "away",
+            "value": 5,
+            "props": [
+              {
+                "bookmaker": "draftkings",
+                "bookmaker_name": "DraftKings",
+                "line": 5,
+                "source": "last_recorded_pregame_main_line",
+                "result": "PUSH"
+              }
+            ]
+          },
+          {
+            "game_id": "sample-3",
+            "kickoff": "2026-01-18T18:00:00Z",
+            "season": 2025,
+            "season_type": 3,
+            "opponent": "Example Wolves",
+            "home_away": "home",
+            "value": null,
+            "props": [
+              {
+                "bookmaker": "draftkings",
+                "bookmaker_name": "DraftKings",
+                "line": 5,
+                "source": "last_recorded_pregame_main_line",
+                "result": null
+              }
+            ]
+          },
+          {
+            "game_id": "sample-4",
+            "kickoff": "2026-01-11T18:00:00Z",
+            "season": 2025,
+            "season_type": 3,
+            "opponent": "Example Foxes",
+            "home_away": "away",
+            "value": 6,
+            "props": []
+          },
+          {
+            "game_id": "sample-5",
+            "kickoff": "2026-01-04T18:00:00Z",
+            "season": 2025,
+            "season_type": 2,
+            "opponent": "Example Owls",
+            "home_away": "home",
+            "value": 4,
+            "props": []
+          },
+          {
+            "game_id": "sample-6",
+            "kickoff": "2025-12-28T18:00:00Z",
+            "season": 2025,
+            "season_type": 2,
+            "opponent": "Example Bulls",
+            "home_away": "away",
+            "value": 5,
+            "props": []
+          },
+          {
+            "game_id": "sample-7",
+            "kickoff": "2025-12-21T18:00:00Z",
+            "season": 2025,
+            "season_type": 2,
+            "opponent": "Example Rams",
+            "home_away": "home",
+            "value": 4,
+            "props": []
+          },
+          {
+            "game_id": "sample-8",
+            "kickoff": "2025-12-14T18:00:00Z",
+            "season": 2025,
+            "season_type": 2,
+            "opponent": "Example Tigers",
+            "home_away": "away",
+            "value": 7,
+            "props": []
+          },
+          {
+            "game_id": "sample-9",
+            "kickoff": "2025-12-07T18:00:00Z",
+            "season": 2025,
+            "season_type": 2,
+            "opponent": "Example Eagles",
+            "home_away": "home",
+            "value": 3,
+            "props": []
+          }
+        ]
+      },
+      "last_recorded_signal": {
+        "prediction_id": "sample-record",
+        "version": "receiving-production-v2",
+        "status": "historical",
+        "is_current": false,
+        "recorded_at": "2026-09-30T15:50:00Z",
+        "market_expires_at": "2026-09-30T16:10:00Z",
+        "market_is_stale": true,
+        "main_lines": {
+          "draftkings": "5.5",
+          "fanduel": "5.5",
+          "bovada": "5.5"
+        },
+        "signal": {
+          "version": "receiving-production-v2",
+          "status": "eligible",
+          "direction": "UNDER",
+          "projection": "4.9",
+          "threshold": "5.5",
+          "edge": "-0.6",
+          "confidence": 60,
+          "reasons": [
+            {
+              "code": "illustrative_record",
+              "text": "Illustrative stored comparison against the lines recorded at that time."
+            }
+          ]
+        }
+      }
     }
   ],
-  "interpretation": "Research projections, not calibrated probabilities or betting recommendations"
+  "interpretation": "Research projections, not calibrated probabilities or betting recommendations",
+  "api_version": "receiving-production-v1",
+  "next_cursor": null,
+  "total_count": 2
 }
