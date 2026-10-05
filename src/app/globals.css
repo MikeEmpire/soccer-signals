@@ -505,3 +505,15 @@ button:focus-visible,summary:focus-visible,a:focus-visible { outline:2px solid v
 .receiving-recorded { border-left:2px solid var(--soft-line); padding:4px 0 4px 12px; }
 .receiving-recorded p { margin:4px 0; }
 .receiving-recorded small { display:block; overflow-wrap:anywhere; }
+
+.receiving-recorded-badge { flex-shrink:0; border:1px solid #c8b780; background:#faf5e6; color:#65531f; border-radius:8px; padding:8px 10px; font-size:14px; font-weight:650; text-align:center; }
+.receiving-recorded-badge small { display:block; margin-top:4px; font-size:10px; font-weight:400; }
+.receiving-recorded-lead { border:1px solid #ded5b9; border-radius:10px; background:#fcfaf3; padding:14px; color:var(--forest); font-size:12px; }
+.receiving-recorded-lead h4 { font-size:12px; margin:0 0 8px; }
+.receiving-recorded-lead .receiving-reasons { margin:12px 0; }
+.receiving-evidence { border-top:1px solid var(--soft-line); margin-top:18px; padding-top:16px; font-size:12px; }
+.receiving-evidence h4 { margin:0; font-size:12px; }
+.receiving-components dd { text-align:right; flex-shrink:0; max-width:50%; }
+.receiving-details li { color:var(--muted); line-height:1.6; margin-top:5px; }
+.receiving-history-production th:first-child { width:55%; }
+.receiving-history-production th:nth-child(2),.receiving-history-production th:nth-child(3) { width:auto; }

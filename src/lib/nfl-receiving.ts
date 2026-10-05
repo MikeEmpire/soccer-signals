@@ -96,14 +96,14 @@ export interface ReceivingCard {
   last_recorded_signal?: RecordedSignal | null;
   signal?: ReceivingSignal; live_signal?: ReceivingSignal | null; lock_at?: string;
   official_prediction?: { id: number; prediction_id: number; lock_at: string; recorded_at: string; signal: ReceivingSignal } | null;
-  projection: { baseline?: Numeric; opportunity_adjustment?: Numeric; opponent_adjustment?: Numeric;
+  projection: { baseline?: Numeric; opportunity_adjustment?: Numeric; opponent_adjustment?: Numeric; floor_adjustment?: Numeric;
     final?: Numeric; components?: Record<string, { value: Numeric; games: number; effective_weight: Numeric; used: boolean }> };
   market: { books_expected: number; books_available: number; books_with_saved_prices?: number; median_line: Numeric; line_range: Numeric;
     expires_at?: string | null; consensus_expires_at?: string | null;
     saved_comparison?: SavedComparison | null;
     books: ReceivingBook[] };
   edge_vs_median: Numeric; history: Record<string, Record<string, Stats>>;
-  opportunity: { trend?: Record<string, Numeric> }; volatility: Stats;
+  opportunity: { trend?: Record<string, Numeric>; windows?: Record<string, Record<string, Stats & { value?: Numeric; games?: number }>> }; volatility: Stats;
   hit_rates: Record<string, Record<string, { over: number; under: number; push: number; sample_size: number; over_rate_excluding_pushes: Numeric }>>;
   data_gaps: string[];
 }

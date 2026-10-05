@@ -93,7 +93,7 @@ deduplicates cards, and restarts once on an expired cursor. Prices become last-s
 and side on expiry. Consensus expiry suppresses the live comparison and requests a refresh;
 official predictions retain their frozen line, projection, edge and confidence.
 OVER/UNDER/PASS and unavailable reasons come directly from the backend. Confidence
-is an evidence score, never a win probability. The projection tooltip identifies evidence time separately from response time. Legacy threshold frequency tables and projection diagnostics are omitted.
+is an evidence score, never a win probability. The projection tooltip identifies evidence time separately from response time. Full threshold frequency tables remain omitted; selected production, opportunity and projection diagnostics are displayed.
 
 Historical grades, aggregates and CLV remain in the linked backend staff research
 dashboard at `/admin/odds/nflreceivingofficial/research/`. Authenticate there with
@@ -127,9 +127,24 @@ uses the oldest included quote; details list the exact books and quote times.
 Per-book saved differences are labeled separately and only accompany their
 matching saved OVER threshold. No consensus or difference is computed locally.
 
-When a current eligible signal (including PASS) is unavailable, a muted
+When a current eligible signal (including PASS) is unavailable, a prominent
 `last_recorded_signal` can show the original threshold, projection, reasons and
 model version. It is always historical, never current or official, regardless of
 quote expiry. After lock only the official prediction applies; a missing official
 is never replaced with a historical record. These fields require the saved-context
 backend deployment; older responses continue without a fabricated fallback.
+
+NFL cards promote the last recorded signal above the latest research comparison
+when a current eligible signal is unavailable. Its threshold, projection, edge,
+percentage and reasons retain their original recording context. Current eligible
+PASS and official/closed states keep precedence. Saved prices do not generate a
+new signal.
+
+Research evidence shows available recent production averages, target trends,
+target share, catch rate and yards per target. Historical threshold support uses
+the selected signal's supplied explanation, including its recording context; no
+hit rates are reconstructed from saved prices. Projection details expose weighted
+medians, effective weights, adjustments, final projection and volatility. Captured
+history is labeled as a recorded sample, not a season total. Empty past-prop
+columns are hidden per card, with targets shown when available. Data availability
+remains expandable. The API contract and payload size are unchanged in this pass.

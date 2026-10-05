@@ -359,3 +359,55 @@ test('new saved and recorded decimals normalize without turning null into zero',
   const empty = parseReceivingFeed({ ...example, signals: [{ ...card, market: { ...card.market, saved_comparison: { ...savedComparison, projection: null, edge_vs_median: null } } }] });
   assert.equal(empty.signals[0].market.saved_comparison.edge_vs_median, null);
 });
+
+test('recorded signal leads the card and keeps its evidence separate from latest research', () => {
+  const html = render(savedContext, { sample: false });
+  assert.ok(html.includes('receiving-recorded-badge'));
+  assert.ok(html.indexOf('Last recorded signal') < html.indexOf('Last saved consensus'));
+  assert.ok(html.includes('UNDER<!-- --> <!-- -->89.5') || html.includes('UNDER 89.5'));
+  assert.ok(html.includes('Original projection: 70.25'));
+  assert.ok(html.includes('Evidence at recording time'));
+  assert.ok(html.includes('Latest research comparison'));
+  assert.ok(html.includes('80.25'));
+  assert.ok(html.includes('+10.69<!-- -->% vs line') || html.includes('+10.69% vs line'));
+  for (const change of [
+    { lock_at: expired },
+    { market: { ...card.market, expires_at: fresh, consensus_expires_at: fresh }, live_signal: { ...signal, direction: 'PASS' } },
+  ]) assert.ok(!render({ ...savedContext, ...change }, { sample: false }).includes('receiving-recorded-badge'));
+});
+
+test('empty past props hide columns while targets and actual results remain visible', () => {
+  const recent_games = { ...card.recent_games, games: card.recent_games.games.map(game => ({ ...game, props: [], targets: 12 })) };
+  const html = render({ recent_games });
+  assert.ok(!html.includes('scope="col">Past prop'));
+  assert.ok(!html.includes('scope="col">Result'));
+  assert.ok(html.includes('scope="col">Targets'));
+  assert.ok(html.includes('No historical sportsbook lines recorded'));
+  const mixed = render({ recent_games: { ...recent_games, games: [...recent_games.games.slice(0, 9), card.recent_games.games[0]] } });
+  assert.ok(mixed.includes('scope="col">Past prop'));
+  assert.ok(!mixed.includes('scope="col">Targets'));
+});
+
+test('research evidence preserves window availability and labels cross-season sample correctly', () => {
+  const html = render({
+    history: { yards: { season: { games_available: 10 }, last_5: { available: false, mean: 999 }, last_3: { available: true, mean: 22 } } },
+    opportunity: { trend: { season: 5, last_3: 7 }, windows: { season: { target_share: { available: true, value: '0.25' }, catch_rate: { available: false, value: '0.99' } } } },
+    recent_games: { ...card.recent_games, scope: 'last_10_regular_and_postseason' },
+  });
+  assert.ok(html.includes('Recorded sample · up to 10 games'));
+  assert.ok(html.includes('25%'));
+  assert.ok(!html.includes('999'));
+  assert.ok(!html.includes('99%'));
+  assert.ok(html.includes('weighted medians'));
+  assert.ok(html.includes('Final projection'));
+  assert.ok(!html.includes('Season median'));
+});
+
+test('zero or missing comparison thresholds never produce invalid percentages', () => {
+  for (const median_line of [0, null]) {
+    const html = render({ ...savedContext, market: { ...savedContext.market, saved_comparison: { ...savedComparison, median_line } } }, { sample: false });
+    assert.ok(!html.includes('% vs line'));
+    assert.ok(!html.includes('Infinity'));
+    assert.ok(!html.includes('NaN'));
+  }
+});
