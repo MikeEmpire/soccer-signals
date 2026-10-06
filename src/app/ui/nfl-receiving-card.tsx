@@ -1,7 +1,8 @@
 "use client";
 
 import { useId, useState } from "react";
-import { NFL_BOOKS, PROP_LABELS, numberLabel, marketIsCurrent, deadlineIsCurrent, consensusIsCurrent, selectPastProp, displayBookSide, quoteAge, type Numeric, type DisplayQuote, type ReceivingCard } from "../../lib/nfl-receiving";
+import { NFLInjuryContext } from "./nfl-injury-context";
+import { availabilityHeld, NFL_BOOKS, PROP_LABELS, numberLabel, marketIsCurrent, deadlineIsCurrent, consensusIsCurrent, selectPastProp, displayBookSide, quoteAge, type Numeric, type DisplayQuote, type ReceivingCard } from "../../lib/nfl-receiving";
 
 function percent(value: Numeric | undefined) {
   return value == null || value === "" || !Number.isFinite(Number(value)) ? "—" : `${numberLabel(Number(value) * 100)}%`;
@@ -37,18 +38,21 @@ export function NFLReceivingCard({ card, matchup, now, sample = false, outdated 
   const locked = Boolean(official || card.display?.state === "locked" || card.display?.state === "closed" || (card.lock_at && Date.parse(card.lock_at) <= now));
   const signal = locked ? official?.signal : card.live_signal ?? card.signal;
   const directional = signal?.status === "eligible" && (signal.direction === "OVER" || signal.direction === "UNDER") && signal.threshold != null;
-  const showSignal = directional && (locked ? Boolean(official) : consensusReady && (!card.display || card.display.state === "signal"));
+  const injuryHold = availabilityHeld(card.availability);
+  const rushing = card.prop === "rushing_yards";
+  const showSignal = directional && (locked ? Boolean(official) : !injuryHold && consensusReady && (!card.display || card.display.state === "signal"));
   const reasonCodes = new Set(signal?.reasons.map(reason => reason.code));
   const fallbackStatus = reasonCodes.has("insufficient_history") || reasonCodes.has("insufficient_season_history") ? "More history needed"
     : reasonCodes.has("insufficient_fresh_main_books") ? "More sportsbook coverage needed" : null;
   let status = card.display?.label || fallbackStatus || (signal?.status === "eligible" && signal.direction === "PASS" ? "No qualifying edge" : "Signal unavailable");
   if (locked) status = official ? (directional ? "Prediction locked" : "No directional official prediction") : "Prediction window closed";
+  else if (injuryHold) status = "Signal on hold · Player availability";
   else if (outdated) status = "Current comparison awaiting refresh";
   else if (!books.length && (!card.display || ["signal", "no_edge", "awaiting_odds", "limited_coverage"].includes(card.display.state))) status = "No fresh odds available";
   else if (!consensusReady && ["signal", "no_edge"].includes(card.display?.state ?? "signal")) status = "Current comparison awaiting refresh";
   const freshComparison = consensusReady && card.market.median_line != null;
   const savedComparison = !freshComparison ? card.market.saved_comparison : null;
-  const currentEligible = !locked && !outdated && consensusReady && signal?.status === "eligible";
+  const currentEligible = !locked && !outdated && !injuryHold && consensusReady && signal?.status === "eligible";
   const recorded = !locked && !currentEligible ? card.last_recorded_signal : null;
   const projection = locked ? official?.signal.projection : card.available ? card.projection.final : null;
   const reasons = showSignal ? [...new Set(signal.reasons.map(reason => reason.text).filter(Boolean))].slice(0, 3) : [];
@@ -56,13 +60,13 @@ export function NFLReceivingCard({ card, matchup, now, sample = false, outdated 
   if (showSignal && reasons.length < 3 && sampleSize != null) reasons.push(`Based on ${sampleSize} recent recorded games.`);
   const games = card.recent_games?.games.slice(0, 10) ?? [];
   const visibleGames = expanded ? games : games.slice(0, 5);
-  const unit = card.prop === "receiving_yards" ? "yds" : "rec";
-  const history = card.history[card.prop === "receiving_yards" ? "yards" : "receptions"];
+  const unit = card.prop === "receptions" ? "rec" : "yds";
+  const history = card.history[card.prop === "receptions" ? "receptions" : "yards"];
   const sampleLabel = card.recent_games?.scope === "last_10_regular_and_postseason" ? "Recorded sample · up to 10 games" : "Recorded sample";
   const trend = card.opportunity.trend;
   const opportunity = card.opportunity.windows?.season;
   const hasPastProps = games.some(game => selectPastProp(game.props));
-  const hasTargets = !hasPastProps && games.some(game => game.targets != null);
+  const hasVolume = rushing ? games.some(game => game.carries != null) : !hasPastProps && games.some(game => game.targets != null);
   const leadSignal = recorded?.signal ?? (showSignal ? signal : null);
   const historyReason = leadSignal?.reasons.find(reason => reason.code === "historical_threshold");
   const comparisonEdge = freshComparison ? card.edge_vs_median : savedComparison?.edge_vs_median;
@@ -77,6 +81,7 @@ export function NFLReceivingCard({ card, matchup, now, sample = false, outdated 
       <h3>{card.player.name}</h3>
       {matchup && <p className="receiving-matchup">{matchup}</p>}
     </div>{showSignal && <span className="receiving-direction">{signal.direction} {numberLabel(signal.threshold)}</span>}{recorded && <span className="receiving-recorded-badge">{recorded.signal.direction}{recorded.signal.direction !== "PASS" && <> {numberLabel(recorded.signal.threshold)}</>}<small>Last recorded</small></span>}</header>
+    <NFLInjuryContext card={card} now={now} outdated={outdated} locked={locked} />
     <div className="receiving-current">
       {showSignal ? <p className="receiving-caption">{locked ? "Official · Locked" : "Current signal"}{signal.threshold_is_offered === false ? " · Consensus, not an offered line" : ""}</p> : <p className="receiving-status">{status}</p>}
       {locked && projection != null && <p className="receiving-estimate">Official projection: {numberLabel(projection)} {unit} · Frozen difference: {numberLabel(signal?.edge, true)}</p>}
@@ -106,11 +111,14 @@ export function NFLReceivingCard({ card, matchup, now, sample = false, outdated 
       <h4>Research evidence</h4>
       <dl className="receiving-components">
         <div><dt>Last 5 / last 3 average</dt><dd>{numberLabel(history?.last_5?.available === false ? null : history?.last_5?.mean)} / {numberLabel(history?.last_3?.available === false ? null : history?.last_3?.mean)} {unit}</dd></div>
-        <div><dt>Targets per game · sample → last 3</dt><dd>{numberLabel(trend?.season)} → {numberLabel(trend?.last_3)}</dd></div>
-        {opportunity?.target_share?.available && <div><dt>Target share · recorded sample</dt><dd>{percent(opportunity.target_share.value)}</dd></div>}
-        {opportunity?.catch_rate?.available && <div><dt>Catch rate · recorded sample</dt><dd>{percent(opportunity.catch_rate.value)}</dd></div>}
+        <div><dt>{rushing ? "Carries" : "Targets"} per game · sample → last 3</dt><dd>{numberLabel(trend?.season)} → {numberLabel(trend?.last_3)}</dd></div>
+        {!rushing && opportunity?.target_share?.available && <div><dt>Target share · recorded sample</dt><dd>{percent(opportunity.target_share.value)}</dd></div>}
+        {!rushing && opportunity?.catch_rate?.available && <div><dt>Catch rate · recorded sample</dt><dd>{percent(opportunity.catch_rate.value)}</dd></div>}
         {card.prop === "receiving_yards" && opportunity?.yards_per_target?.available && <div><dt>Yards per target · recorded sample</dt><dd>{numberLabel(opportunity.yards_per_target.value)}</dd></div>}
+        {rushing && <div><dt>Yards per carry · aggregate sample</dt><dd>{numberLabel(card.opportunity.yards_per_carry?.available === false ? null : card.opportunity.yards_per_carry?.value)}</dd></div>}
+        {rushing && card.opponent_context && <div><dt>Opponent team rushing yards allowed / game</dt><dd>{numberLabel(card.opponent_context.opponent?.available === false ? null : card.opponent_context.opponent?.mean)}</dd></div>}
       </dl>
+      {rushing && <p className="receiving-caption">Team run defense is display context only, not a positional matchup estimate or projection bonus.</p>}
       <p className="receiving-caption">{sampleLabel} · {history?.season?.games_available ?? "—"} observations. Recent averages describe production; the projection uses weighted medians.</p>
       {historyReason ? <p className="receiving-caption">{recorded ? "At recording time" : locked ? "At official lock" : "At the signal threshold"}: {historyReason.text}</p> : <p className="receiving-caption">Historical threshold comparison unavailable.</p>}
     </section>
@@ -132,14 +140,14 @@ export function NFLReceivingCard({ card, matchup, now, sample = false, outdated 
       {games.length ? <>
         <table id={historyId} className={`receiving-history ${!hasPastProps ? "receiving-history-production" : ""}`}>
           <caption className="sr-only">{card.player.name}: {PROP_LABELS[card.prop]} and recorded past props</caption>
-          <thead><tr><th scope="col">Game</th><th scope="col">{unit === "yds" ? "Yards" : "Rec."}</th>{hasPastProps && <><th scope="col">Past prop</th><th scope="col">Result</th></>}{hasTargets && <th scope="col">Targets</th>}</tr></thead>
+          <thead><tr><th scope="col">Game</th><th scope="col">{unit === "yds" ? "Yards" : "Rec."}</th>{hasPastProps && <><th scope="col">Past prop</th><th scope="col">Result</th></>}{hasVolume && <th scope="col">{rushing ? "Carries" : "Targets"}</th>}</tr></thead>
           <tbody>{visibleGames.map((game, index) => {
             const past = selectPastProp(game.props);
             return <tr key={`${game.game_id ?? game.kickoff}-${index}`}>
               <th scope="row"><time dateTime={game.kickoff}>{new Date(game.kickoff).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}</time><span>{game.home_away === "away" ? "at " : game.home_away === "home" ? "vs " : ""}{game.opponent || "Opponent unavailable"}</span>{game.season_type === 3 && <small className="receiving-playoff">Playoffs{game.season != null ? ` · ${game.season}` : ""}</small>}</th>
               <td>{numberLabel(game.value)}</td>
               {hasPastProps && <td>{past ? <>{numberLabel(past.line)}<small>{past.bookmaker_name}</small></> : "—"}</td>}
-              {hasPastProps && <td><span className="receiving-result">{game.value != null && past?.line != null ? past.result ?? "—" : "—"}</span></td>}{hasTargets && <td>{numberLabel(game.targets)}</td>}
+              {hasPastProps && <td><span className="receiving-result">{game.value != null && past?.line != null ? past.result ?? "—" : "—"}</span></td>}{hasVolume && <td>{numberLabel(rushing ? game.carries : game.targets)}</td>}
             </tr>;
           })}</tbody>
         </table>
@@ -153,8 +161,8 @@ export function NFLReceivingCard({ card, matchup, now, sample = false, outdated 
       <dl className="receiving-components">
         {Object.entries(card.projection.components ?? {}).map(([window, component]) => <div key={window}><dt>{window === "season" ? sampleLabel : window === "last_5" ? "Last 5 games" : window === "last_3" ? "Last 3 games" : window} median · {component.games} games</dt><dd>{numberLabel(component.value)} × {percent(component.effective_weight)}{!component.used && " · Not used"}</dd></div>)}
         <div><dt>Weighted baseline</dt><dd>{numberLabel(card.projection.baseline)}</dd></div>
-        <div><dt>Opportunity adjustment</dt><dd>{numberLabel(card.projection.opportunity_adjustment, true)}</dd></div>
-        <div><dt>Opponent adjustment</dt><dd>{numberLabel(card.projection.opponent_adjustment, true)}</dd></div>
+        <div><dt>{rushing ? "Carry trend adjustment" : "Opportunity adjustment"}</dt><dd>{numberLabel(card.projection.opportunity_adjustment, true)}</dd></div>
+        {!rushing && <div><dt>Opponent adjustment</dt><dd>{numberLabel(card.projection.opponent_adjustment, true)}</dd></div>}
         {card.projection.floor_adjustment != null && Number(card.projection.floor_adjustment) !== 0 && <div><dt>Zero-floor adjustment</dt><dd>{numberLabel(card.projection.floor_adjustment, true)}</dd></div>}
         <div><dt>Final projection</dt><dd>{numberLabel(card.projection.final)} {unit}</dd></div>
         <div><dt>Recorded production median</dt><dd>{numberLabel(history?.season?.median)} {unit}</dd></div>

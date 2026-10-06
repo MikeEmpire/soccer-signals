@@ -1,7 +1,8 @@
 export type Numeric = number | string | null;
-export type Prop = "receiving_yards" | "receptions";
+export type Prop = "receiving_yards" | "receptions" | "rushing_yards";
+export type NFLFamily = "receiving" | "rushing";
 export const NFL_BOOKS = ["draftkings", "fanduel", "bovada"] as const;
-export const PROP_LABELS = { receiving_yards: "Receiving yards", receptions: "Receptions" };
+export const PROP_LABELS = { receiving_yards: "Receiving yards", receptions: "Receptions", rushing_yards: "Rushing yards" };
 export interface ReceivingSignal {
   version?: string; direction: "OVER" | "UNDER" | "PASS"; status: "eligible" | "unavailable";
   projection?: Numeric; threshold?: Numeric; edge?: Numeric; edge_pct?: Numeric;
@@ -21,7 +22,7 @@ export interface PastProp {
 export interface RecentGame {
   game_id: string | null; kickoff: string; season?: number | null; season_type?: number | null;
   opponent_id?: string | null; opponent: string | null; home_away?: string | null;
-  receiving_yards?: Numeric; receptions?: Numeric; targets?: Numeric; value: Numeric; props: PastProp[];
+  rushing_yards?: Numeric; carries?: Numeric; receiving_yards?: Numeric; receptions?: Numeric; targets?: Numeric; value: Numeric; props: PastProp[];
 }
 export function selectPastProp(props: PastProp[], preferredBook?: string) {
   const order = preferredBook ? [preferredBook, ...NFL_BOOKS] : NFL_BOOKS;
@@ -88,8 +89,30 @@ export interface RecordedSignal {
   status: "historical"; is_current: false; signal: ReceivingSignal;
   main_lines: Record<string, Numeric>; market_expires_at: string | null; market_is_stale: boolean;
 }
+export interface Availability {
+  status: string; freshness?: string; blocking_reason?: string | null;
+  observed_at?: string | null; source?: string | null;
+  players?: { player_id: string; name?: string | null; relationship: string; status: string; injury?: string | null; reported_at?: string | null }[];
+}
+export interface InjuryOpportunity {
+  observed_at?: string | null;
+  contributors?: {
+    code: string; related_player_id: string; affected_player_id: string; market: Prop;
+    status: string; role: string; role_source: string; explanation: string;
+    freshness: string; injury_observed_at?: string | null; reported_at?: string | null;
+    sample: { leader_usage: Numeric; leader_share: Numeric; beneficiary_usage: Numeric; beneficiary_share: Numeric;
+      beneficiary_games: number; game_ids: (string | number)[]; games_without_recorded_leader_usage: (string | number)[];
+      records: { player_id: string; name: string; game_id: string | number; kickoff: string; finalized_at: string; metric: string; value: Numeric }[] };
+  }[];
+}
+export function availabilityHeld(availability: Availability | null | undefined) {
+  return Boolean(availability && (availability.blocking_reason || availability.freshness !== "fresh"
+    || ["unknown", "out", "inactive", "doubtful"].includes(availability.status)));
+}
 export interface ReceivingCard {
   id: string; game_id: string; player: { id: string; name: string }; prop: Prop;
+  availability?: Availability | null; late_availability_notice?: Availability | null; injury_opportunity?: InjuryOpportunity;
+  opponent_context?: { metric?: string; opponent?: Stats; league?: Stats; used_in_projection?: boolean; interpretation?: string };
   available: boolean; reason: string | null; input_observed_at: string | null;
   recent_games?: { label: string; scope: string; observed_at: string | null; total_available: number; games: RecentGame[] } | null;
   display?: { state: string; label: string; description?: string; show_confidence?: boolean; show_market_table?: boolean } | null;
@@ -103,7 +126,7 @@ export interface ReceivingCard {
     saved_comparison?: SavedComparison | null;
     books: ReceivingBook[] };
   edge_vs_median: Numeric; history: Record<string, Record<string, Stats>>;
-  opportunity: { trend?: Record<string, Numeric>; windows?: Record<string, Record<string, Stats & { value?: Numeric; games?: number }>> }; volatility: Stats;
+  opportunity: { yards_per_carry?: { available?: boolean; value?: Numeric; games?: number }; trend?: Record<string, Numeric>; windows?: Record<string, Record<string, Stats & { value?: Numeric; games?: number }>> }; volatility: Stats;
   hit_rates: Record<string, Record<string, { over: number; under: number; push: number; sample_size: number; over_rate_excluding_pushes: Numeric }>>;
   data_gaps: string[];
 }
@@ -129,7 +152,7 @@ export function consensusIsCurrent(card: ReceivingCard, now: number) {
   return card.market.books_available >= 2 && deadlineIsCurrent(card.market.consensus_expires_at, now);
 }
 // Normalize decimal fields without touching IDs, timestamps, or canonical threshold keys.
-const numericKeys = new Set(["baseline", "opportunity_adjustment", "opponent_adjustment", "final", "value", "effective_weight", "configured_weight", "median_line", "line_range", "line", "over_odds", "under_odds", "edge", "edge_vs_median", "saved_edge", "projection", "threshold", "edge_pct", "confidence", "mean", "median", "stddev", "cv", "iqr", "min", "max", "range", "over_rate_excluding_pushes", "closing_line", "clv", "actual", "american_odds", "receiving_yards", "receptions", "targets"]);
+const numericKeys = new Set(["rushing_yards", "carries", "leader_usage", "leader_share", "beneficiary_usage", "beneficiary_share", "baseline", "opportunity_adjustment", "opponent_adjustment", "final", "value", "effective_weight", "configured_weight", "median_line", "line_range", "line", "over_odds", "under_odds", "edge", "edge_vs_median", "saved_edge", "projection", "threshold", "edge_pct", "confidence", "mean", "median", "stddev", "cv", "iqr", "min", "max", "range", "over_rate_excluding_pushes", "closing_line", "clv", "actual", "american_odds", "receiving_yards", "receptions", "targets"]);
 export function normalizeNumeric(value: unknown): number | null {
   if (value === null || value === undefined || value === "") return null;
   if (typeof value !== "number" && typeof value !== "string") throw new Error("The NFL service returned an unexpected response.");
@@ -173,14 +196,29 @@ function validSavedContext(card: ReceivingCard) {
       && Boolean(record.signal) && validSignal(record.signal) && record.signal.status === "eligible"
       && record.main_lines != null && typeof record.main_lines === "object" && !Array.isArray(record.main_lines)));
 }
-export function parseReceivingFeed(value: unknown): ReceivingFeed {
+function validAvailability(value: Availability | null | undefined) {
+  return value == null || (typeof value.status === "string"
+    && (value.freshness == null || typeof value.freshness === "string")
+    && (value.players == null || (Array.isArray(value.players) && value.players.every(player => player
+      && typeof player.relationship === "string" && typeof player.status === "string"
+      && (player.injury == null || typeof player.injury === "string")))));
+}
+function validInjuryOpportunity(value: InjuryOpportunity | null | undefined) {
+  return value == null || value.contributors == null || (Array.isArray(value.contributors) && value.contributors.every(item => item
+    && [item.code, item.status, item.role, item.role_source, item.explanation, item.freshness].every(field => typeof field === "string")
+    && item.sample && Array.isArray(item.sample.game_ids) && Array.isArray(item.sample.games_without_recorded_leader_usage)
+    && Array.isArray(item.sample.records) && item.sample.records.every(row => row && typeof row.name === "string"
+      && typeof row.metric === "string" && typeof row.kickoff === "string")));
+}
+export function parseReceivingFeed(value: unknown, family: NFLFamily = "receiving"): ReceivingFeed {
   const data = normalize(value) as ReceivingFeed;
   if (!data || ![48, 72].includes(data.window_hours) || !Array.isArray(data.games) || !Array.isArray(data.signals)
       || !data.generated_at || !Number.isFinite(Date.parse(data.generated_at))
       || (data.next_cursor != null && typeof data.next_cursor !== "string")
-      || data.signals.some(card => !card || !card.id || !card.game_id || !Object.hasOwn(PROP_LABELS, card.prop) || !card.player
+      || data.signals.some(card => !card || !card.id || !card.game_id || !(family === "rushing" ? ["rushing_yards"] : ["receiving_yards", "receptions"]).includes(card.prop) || !card.player
         || !card.projection || !card.market || !Array.isArray(card.market.books) || !card.market.books.every(validSavedQuotes)
         || !card.history || !card.opportunity || !card.volatility || !validSignal(card.signal)
+        || !validAvailability(card.availability) || !validAvailability(card.late_availability_notice) || !validInjuryOpportunity(card.injury_opportunity)
         || !validSavedContext(card) || !validRecentGames(card.recent_games)
         || (card.display != null && (typeof card.display.state !== "string" || typeof card.display.label !== "string"))
         || !validSignal(card.live_signal) || !validSignal(card.official_prediction?.signal))
@@ -189,7 +227,7 @@ export function parseReceivingFeed(value: unknown): ReceivingFeed {
   }
   return data;
 }
-export async function loadReceivingFeed(signal?: AbortSignal): Promise<ReceivingFeed> {
+export async function loadReceivingFeed(signal?: AbortSignal, family: NFLFamily = "receiving"): Promise<ReceivingFeed> {
   // One restart allows expired cursors to recover without an infinite retry loop.
   for (let attempt = 0; attempt < 2; attempt++) {
     let cursor: string | null = null;
@@ -201,10 +239,10 @@ export async function loadReceivingFeed(signal?: AbortSignal): Promise<Receiving
       signal?.throwIfAborted();
       const params = new URLSearchParams({ limit: "100" });
       if (cursor) params.set("cursor", cursor);
-      const response = await fetch(`/api/odds/nfl/receiving/?${params}`, { cache: "no-store", signal });
+      const response = await fetch(`/api/odds/nfl/${family}/?${params}`, { cache: "no-store", signal });
       if (response.status === 400 && cursor && attempt === 0) break;
       if (!response.ok) throw new Error("NFL research is unavailable. Try refreshing shortly.");
-      const page = parseReceivingFeed(await response.json());
+      const page = parseReceivingFeed(await response.json(), family);
       signal?.throwIfAborted();
       first ??= page;
       page.games.forEach(game => games.set(game.id, game));

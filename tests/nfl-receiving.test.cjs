@@ -411,3 +411,96 @@ test('zero or missing comparison thresholds never produce invalid percentages', 
     assert.ok(!html.includes('NaN'));
   }
 });
+
+const rushingExample = require('../src/lib/nfl-rushing-example.json');
+const rushingCard = rushingExample.signals[0];
+test('rushing and receiving parsers reject cross-family slates and normalize carries', () => {
+  assert.throws(() => parseReceivingFeed(rushingExample), /unexpected/);
+  assert.throws(() => parseReceivingFeed(example, 'rushing'), /unexpected/);
+  const input = structuredClone(rushingExample);
+  input.signals[0].recent_games.games[0].rushing_yards = '-2';
+  input.signals[0].recent_games.games[0].carries = '3';
+  const parsed = parseReceivingFeed(input, 'rushing').signals[0];
+  assert.equal(parsed.recent_games.games[0].rushing_yards, -2);
+  assert.equal(parsed.recent_games.games[0].carries, 3);
+  input.signals[0].recent_games.games[0].carries = 'Infinity';
+  assert.throws(() => parseReceivingFeed(input, 'rushing'), /unexpected/);
+});
+test('rushing pagination stays on the rushing endpoint with its own cursor', async () => {
+  const original = global.fetch;
+  let calls = 0;
+  try {
+    global.fetch = async (url, options) => {
+      const parsed = new URL(url, 'http://localhost');
+      assert.equal(parsed.pathname, '/api/odds/nfl/rushing/');
+      assert.equal(options.cache, 'no-store');
+      if (++calls === 1) return Response.json({ ...rushingExample, next_cursor: 'rushing +/', truncated: true });
+      assert.equal(parsed.searchParams.get('cursor'), 'rushing +/');
+      return Response.json(rushingExample);
+    };
+    assert.equal((await loadReceivingFeed(undefined, 'rushing')).signals.length, 1);
+    assert.equal(calls, 2);
+  } finally { global.fetch = original; }
+});
+test('rushing proxy forwards only supported parameters to the rushing backend', async () => {
+  const { GET } = require('../src/app/api/odds/nfl/rushing/route.ts');
+  const original = global.fetch;
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+  process.env.NEXT_PUBLIC_API_BASE_URL = 'https://backend.example';
+  try {
+    global.fetch = async (url, options) => {
+      assert.equal(url, 'https://backend.example/api/odds/nfl/rushing/?limit=100&cursor=rush%2B');
+      assert.equal(options.cache, 'no-store');
+      return Response.json(rushingExample);
+    };
+    const response = await GET(new Request('http://localhost/api/odds/nfl/rushing/?limit=100&cursor=rush%2B&url=ignored'));
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('Cache-Control'), 'no-store');
+  } finally { global.fetch = original; if (base === undefined) delete process.env.NEXT_PUBLIC_API_BASE_URL; else process.env.NEXT_PUBLIC_API_BASE_URL = base; }
+});
+test('rushing displays carries, aggregate efficiency and team defense as context only', () => {
+  const html = render(rushingCard);
+  for (const text of ['Rushing yards', '62.75', 'yds', 'Carries per game', 'Yards per carry', 'Carry trend adjustment', 'Team run defense is display context only']) assert.ok(html.includes(text), text);
+  for (const text of ['Targets per game', 'Catch rate', 'Yards per target', 'Opponent adjustment']) assert.ok(!html.includes(text), text);
+  assert.ok(html.includes('<th scope="col">Carries</th>'));
+});
+test('injury holds suppress current directions on both families while retaining prices and history', () => {
+  for (const source of [card, rushingCard]) {
+    for (const status of ['out', 'inactive', 'doubtful', 'unknown']) {
+      const html = render({ ...source, availability: { status, freshness: 'fresh' } });
+      assert.ok(html.includes('Signal on hold'));
+      assert.ok(!html.includes('receiving-direction'));
+      assert.ok(html.includes('Sportsbook odds'));
+      assert.ok(html.includes('Recent performances'));
+    }
+    for (const freshness of ['stale', 'missing']) {
+      const html = render({ ...source, availability: { status: 'not_listed', freshness } });
+      assert.ok(!html.includes('receiving-direction'));
+      assert.ok(html.includes(`${freshness} report`));
+    }
+  }
+});
+test('questionable/probable caveats and qualified teammate evidence are prominent without changing projection', () => {
+  for (const status of ['questionable', 'probable']) {
+    const html = render({ ...rushingCard, availability: { ...rushingCard.availability, status } });
+    assert.ok(html.includes('usual workload'));
+    assert.ok(html.includes('receiving-direction'));
+    assert.ok(html.indexOf('Player availability') < html.indexOf('Current consensus'));
+    assert.ok(html.includes('Example Teammate'));
+    assert.ok(html.includes('Supporting usage and injury evidence'));
+    assert.ok(html.includes('No numerical injury adjustment or OVER recommendation'));
+    assert.ok(html.includes('not a confirmed starter or depth chart'));
+    assert.ok(html.includes('62.75'));
+  }
+  assert.ok(render({ availability: { status: 'not_listed', freshness: 'fresh' } }).includes('does not mean confirmed healthy'));
+});
+test('late injury notice cannot rewrite the official prediction', () => {
+  const html = render({ ...rushingCard, official_prediction: { id: 1, signal, recorded_at: fresh, lock_at: expired },
+    late_availability_notice: { status: 'out', freshness: 'fresh', observed_at: fresh } });
+  for (const text of ['Late injury update', 'UNDER 78.5', 'Official · Locked', 'immutable official prediction']) assert.ok(html.includes(text), text);
+});
+test('malformed injury evidence is rejected before rendering and empty legacy context is accepted', () => {
+  assert.throws(() => parseReceivingFeed({ ...rushingExample, signals: [{ ...rushingCard, injury_opportunity: { contributors: [{}] } }] }, 'rushing'), /unexpected/);
+  assert.throws(() => parseReceivingFeed({ ...example, signals: [{ ...card, availability: { status: 'out', players: {} } }] }), /unexpected/);
+  assert.equal(parseReceivingFeed({ ...example, signals: [{ ...card, injury_opportunity: {} }] }).signals.length, 1);
+});

@@ -517,3 +517,15 @@ button:focus-visible,summary:focus-visible,a:focus-visible { outline:2px solid v
 .receiving-details li { color:var(--muted); line-height:1.6; margin-top:5px; }
 .receiving-history-production th:first-child { width:55%; }
 .receiving-history-production th:nth-child(2),.receiving-history-production th:nth-child(3) { width:auto; }
+
+.nfl-family-tabs { margin:20px 0; width:fit-content; }
+.nfl-injury-notice,.nfl-injury-opportunity { border:1px solid #d9bd70; border-left:4px solid #b17a17; border-radius:10px; background:#fff8e7; color:#654913; padding:12px; margin:14px 0; font-size:12px; line-height:1.6; overflow-wrap:anywhere; }
+.nfl-injury-hold { border-color:#d9a39a; border-left-color:#ab4035; background:#fff0ed; color:#81352e; }
+.nfl-injury-title { display:flex; align-items:flex-start; gap:8px; }
+.nfl-injury-title svg { flex-shrink:0; margin-top:2px; }
+.nfl-injury-notice p,.nfl-injury-opportunity p { margin:6px 0; }
+.nfl-injury-opportunity { background:#f5f7ed; border-color:#bdc8a0; color:#445330; }
+.nfl-injury-opportunity h4 { margin:0; }
+.nfl-injury-notice summary,.nfl-injury-opportunity summary { cursor:pointer; font-weight:600; }
+.nfl-injury-opportunity ul { padding-left:16px; }
+.nfl-injury-opportunity small { display:block; }
