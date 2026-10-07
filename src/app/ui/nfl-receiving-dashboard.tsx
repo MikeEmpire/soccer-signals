@@ -11,18 +11,24 @@ import { NFLReceivingCard } from "./nfl-receiving-card";
 const sampleFeeds = { receiving: parseReceivingFeed(example), rushing: parseReceivingFeed(rushingExample, "rushing") };
 
 export function NFLReceivingDashboard() {
-  const [family, setFamily] = useState<NFLFamily>("receiving");
-  return <NFLFamilyDashboard key={family} family={family} onFamilyChange={setFamily} />;
+  const [prop, setProp] = useState<"all" | Prop>("all");
+  const [preview, setPreview] = useState(false);
+  const family: NFLFamily = prop === "rushing_yards" ? "rushing" : "receiving";
+  return <NFLFamilyDashboard key={family} family={family} prop={prop} onPropChange={setProp} preview={preview} onPreviewChange={setPreview} />;
 }
 
-function NFLFamilyDashboard({ family, onFamilyChange }: { family: NFLFamily; onFamilyChange: (family: NFLFamily) => void }) {
+function NFLFamilyDashboard({ family, prop, onPropChange, preview, onPreviewChange: setPreview }: {
+  family: NFLFamily;
+  prop: "all" | Prop;
+  onPropChange: (prop: "all" | Prop) => void;
+  preview: boolean;
+  onPreviewChange: (preview: boolean) => void;
+}) {
   const rushing = family === "rushing";
-  const [preview, setPreview] = useState(false);
   const [feed, setFeed] = useState<ReceivingFeed | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [prop, setProp] = useState<"all" | Prop>("all");
   const [now, setNow] = useState(0);
   const expiryRefresh = useRef("");
   useEffect(() => {
@@ -69,12 +75,11 @@ function NFLFamilyDashboard({ family, onFamilyChange }: { family: NFLFamily; onF
     <header className="site-header"><div className="brand-block"><div className="brand-icon"><Shield size={20} /></div><div><div className="eyebrow">Sports Signals · Research V1</div><h1>NFL Props Research</h1></div></div>
       <button className="refresh-button" disabled={preview || loading} onClick={() => setRefreshKey(n => n+1)}><RefreshCw size={16} className={loading && !preview ? "is-spinning" : ""} /><span>Refresh</span></button></header>
     <nav className="page-nav" aria-label="Site sections"><Link href="/" className="page-nav-link">Live Odds</Link><Link href="/review" className="page-nav-link">Daily Review</Link><span className="page-nav-link page-nav-active" aria-current="page">NFL Props</span></nav>
-    <div className="filter-shell nfl-family-tabs" role="group" aria-label="NFL prop family">{(["receiving", "rushing"] as const).map(value => <button key={value} aria-pressed={family === value} className={family === value ? "filter-active" : ""} onClick={() => onFamilyChange(value)}>{value === "receiving" ? "Receiving" : "Rushing"}</button>)}</div>
     <section className="receiving-intro"><div><span className="section-kicker">{preview ? "Sample preview" : `Next ${windowHours} hours`}</span><h2>{rushing ? "RB rushing props, with the evidence." : "Receiving props, with the evidence."}</h2><p>ESPN-derived projections alongside DraftKings, FanDuel and Bovada. Explore the numbers behind each player.</p></div>
       <div className="filter-shell" role="group" aria-label="Data source"><button className={!preview ? "filter-active" : ""} aria-pressed={!preview} onClick={() => setPreview(false)}>Live</button><button className={preview ? "filter-active" : ""} aria-pressed={preview} onClick={() => setPreview(true)}>Sample preview</button></div></section>
     {preview && <div className="receiving-sample" role="status"><strong>Sample data · Not current NFL signals</strong><span>A synthetic player and illustrative matchup demonstrate the calculated output. These are fixed examples, not live forecasts.</span></div>}
     {!preview && error && <div className="receiving-error" role="alert">{error} {feed ? "Showing saved projections and labeled last-saved prices; live comparisons are hidden until refresh succeeds." : "You can open Sample preview to explore the interface."}<button onClick={() => setRefreshKey(n => n+1)}>Retry</button></div>}
-    <div className="receiving-toolbar"><div className="filter-shell" role="group" aria-label="Prop type">{(rushing ? ["rushing_yards"] as const : ["all", "receiving_yards", "receptions"] as const).map(value => <button key={value} aria-pressed={rushing || prop === value} className={rushing || prop === value ? "filter-active" : ""} onClick={() => setProp(value)}>{value === "all" ? "All receiving" : PROP_LABELS[value]}</button>)}</div>
+    <div className="receiving-toolbar"><div className="filter-shell" role="group" aria-label="Prop type">{(["all", "receiving_yards", "receptions", "rushing_yards"] as const).map(value => <button key={value} aria-pressed={prop === value} className={prop === value ? "filter-active" : ""} onClick={() => onPropChange(value)}>{value === "all" ? "All receiving" : PROP_LABELS[value]}</button>)}</div>
       <span className="refresh-meta">{preview ? "Fixed example dataset" : loading ? "Refreshing…" : data ? `Response ${new Date(data.generated_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} · refreshes every minute` : "Waiting for data"}</span></div>
     {data && <div className="receiving-summary"><span><strong>{data.game_count}</strong> {preview ? "illustrative matchup" : "upcoming games"}</span><span><strong>{data.projection_count}</strong> projections available</span><span>{rushing ? "1 rushing market" : "2 receiving markets"} · 3 supported books</span></div>}
     {!preview && !data && loading && <div className="receiving-empty" role="status"><h3>Loading upcoming NFL research…</h3><p>Checking stored games and pregame projections.</p></div>}

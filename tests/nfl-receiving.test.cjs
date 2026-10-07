@@ -504,3 +504,87 @@ test('malformed injury evidence is rejected before rendering and empty legacy co
   assert.throws(() => parseReceivingFeed({ ...example, signals: [{ ...card, availability: { status: 'out', players: {} } }] }), /unexpected/);
   assert.equal(parseReceivingFeed({ ...example, signals: [{ ...card, injury_opportunity: {} }] }).signals.length, 1);
 });
+
+test('conditional projections remain visible across NFL props without clearing availability holds', () => {
+  for (const source of [card, example.signals.find(s => s.prop === 'receptions'), rushingCard]) {
+    for (const value of [0, 64.25]) {
+      const change = { ...source, available: false,
+        projection: { ...source.projection, final: null, conditional_on_playing: value },
+        availability: { status: 'unknown', freshness: 'missing', blocking_reason: 'injury_evidence_stale_or_missing' },
+        market: { ...source.market, saved_comparison: { ...savedComparison, projection: null, edge_vs_median: null } } };
+      for (const outdated of [false, true]) {
+        const html = render(change, { outdated });
+        assert.ok(html.includes('Projection · If playing') || html.includes('Saved projection · If playing'));
+        assert.ok(html.includes(`<strong>${value} <small>${source.prop === 'receptions' ? 'rec' : 'yds'}</small>`));
+        assert.ok(html.includes('usual workload'));
+        assert.ok(html.includes('within 24 hours of kickoff'));
+        assert.ok(html.includes('Signal on hold'));
+        assert.ok(!html.includes('receiving-direction'));
+        assert.ok(!html.includes('Live diff.'));
+        assert.ok(!html.includes('Saved diff.'));
+      }
+    }
+  }
+});
+test('conditional projection normalization preserves zero and rejects invalid numbers', () => {
+  for (const [raw, expected] of [['64.25', 64.25], ['0', 0], [null, null], ['', null]]) {
+    const feed = parseReceivingFeed({ ...example, signals: [{ ...card, projection: { final: null, conditional_on_playing: raw } }] });
+    assert.equal(feed.signals[0].projection.conditional_on_playing, expected);
+  }
+  for (const raw of ['invalid', 'Infinity', true]) {
+    assert.throws(() => parseReceivingFeed({ ...example, signals: [{ ...card, projection: { conditional_on_playing: raw } }] }), /unexpected/);
+  }
+});
+test('conditional estimates do not replace available final or frozen official projections', () => {
+  const projection = { final: 47.25, conditional_on_playing: 64.25 };
+  const available = render({ available: true, projection });
+  assert.ok(available.includes('<strong>47.25 <small>yds</small>'));
+  assert.ok(!available.includes('If playing'));
+  const locked = render({ available: false, projection: { ...projection, final: null },
+    official_prediction: { id: 1, signal, recorded_at: fresh, lock_at: expired } });
+  assert.ok(locked.includes('Official projection: 62.75'));
+  assert.ok(locked.includes('Live projection · If playing'));
+  assert.ok(locked.includes('<strong>64.25 <small>yds</small>'));
+});
+test('slate projection count includes conditional model estimates', async () => {
+  const original = global.fetch;
+  try {
+    global.fetch = async () => Response.json({ ...example, signals: [{ ...card, available: false, projection: { final: null, conditional_on_playing: 0 } }] });
+    assert.equal((await loadReceivingFeed()).projection_count, 1);
+  } finally { global.fetch = original; }
+});
+
+test('if-playing differences use the displayed current or saved line across NFL props', () => {
+  for (const source of [card, example.signals.find(s => s.prop === 'receptions'), rushingCard]) {
+    const change = { ...source, available: false, projection: { final: null, conditional_on_playing: '80.25' },
+      availability: { status: 'unknown', freshness: 'missing' },
+      market: { ...source.market, books_available: 2, median_line: 75, saved_comparison: savedComparison,
+        books: [savedBook({ line: 75, over_odds: -110, under_odds: -115,
+          latest_saved: { over: savedQuote({ line: 72.5 }), under: savedQuote({ line: 70.5 }) } })] } };
+    const current = render(change);
+    assert.ok(current.includes('Difference · If playing</span><strong>+5.25</strong>'));
+    assert.ok(current.includes('+7% vs line'));
+    assert.ok(current.includes('If playing · Current line'));
+    const stale = render(change, { outdated: true });
+    assert.ok(stale.includes('Difference vs saved line · If playing</span><strong>+7.75</strong>'));
+    assert.ok(stale.includes('+10.69% vs line'));
+    assert.ok(stale.includes('<td>+7.75<small class="receiving-book-status">If playing · Saved line'));
+    assert.ok(!stale.includes('<td>+9.75'));
+    assert.ok(stale.includes('Signal on hold'));
+    assert.ok(!stale.includes('receiving-direction'));
+  }
+});
+test('conditional differences preserve zero, negative and missing lines without reviving withdrawn quotes', () => {
+  const base = { available: false, projection: { final: null, conditional_on_playing: 0 } };
+  for (const [line, expected] of [[0, '0'], [5, '-5'], [null, '—']]) {
+    const html = render({ ...base, market: { ...card.market, median_line: line, saved_comparison: null, books: [] } });
+    assert.ok(html.includes(`Difference · If playing</span><strong>${expected}</strong>`));
+    assert.ok(!html.includes('NaN'));
+    assert.ok(!html.includes('Infinity'));
+  }
+  for (const status of ['withdrawn', 'invalid_timestamp']) {
+    const html = render({ ...base, market: { ...card.market, books: [savedBook({ latest_saved: { over: savedQuote({ status }) } })] } });
+    assert.ok(!html.includes('If playing · Current line'));
+    assert.ok(!html.includes('If playing · Saved line'));
+  }
+});

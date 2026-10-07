@@ -8,6 +8,11 @@ function percent(value: Numeric | undefined) {
   return value == null || value === "" || !Number.isFinite(Number(value)) ? "—" : `${numberLabel(Number(value) * 100)}%`;
 }
 
+function difference(projection: Numeric | undefined, line: Numeric | undefined) {
+  if (projection == null || projection === "" || line == null || line === "") return null;
+  return Number.isFinite(Number(projection)) && Number.isFinite(Number(line)) ? Number(projection) - Number(line) : null;
+}
+
 function BookSide({ quote, now }: { quote: DisplayQuote; now: number }) {
   if (quote.status === "missing") return <span className="receiving-book-status">No line recorded</span>;
   if (quote.status === "withdrawn") return <span className="receiving-book-status">Unavailable</span>;
@@ -52,6 +57,10 @@ export function NFLReceivingCard({ card, matchup, now, sample = false, outdated 
   else if (!consensusReady && ["signal", "no_edge"].includes(card.display?.state ?? "signal")) status = "Current comparison awaiting refresh";
   const freshComparison = consensusReady && card.market.median_line != null;
   const savedComparison = !freshComparison ? card.market.saved_comparison : null;
+  // Injury polling can leave final unavailable while the backend still supplies
+  // a model estimate assuming participation. This does not clear a signal hold.
+  const conditionalProjection = !(card.available && card.projection.final != null) && card.projection.conditional_on_playing != null;
+  const researchProjection = conditionalProjection ? card.projection.conditional_on_playing : card.available ? card.projection.final : null;
   const currentEligible = !locked && !outdated && !injuryHold && consensusReady && signal?.status === "eligible";
   const recorded = !locked && !currentEligible ? card.last_recorded_signal : null;
   const projection = locked ? official?.signal.projection : card.available ? card.projection.final : null;
@@ -69,8 +78,8 @@ export function NFLReceivingCard({ card, matchup, now, sample = false, outdated 
   const hasVolume = rushing ? games.some(game => game.carries != null) : !hasPastProps && games.some(game => game.targets != null);
   const leadSignal = recorded?.signal ?? (showSignal ? signal : null);
   const historyReason = leadSignal?.reasons.find(reason => reason.code === "historical_threshold");
-  const comparisonEdge = freshComparison ? card.edge_vs_median : savedComparison?.edge_vs_median;
   const comparisonLine = freshComparison ? card.market.median_line : savedComparison?.median_line;
+  const comparisonEdge = conditionalProjection ? difference(researchProjection, comparisonLine) : freshComparison ? card.edge_vs_median : savedComparison?.edge_vs_median;
   const comparisonPercent = comparisonEdge != null && comparisonLine != null && Number(comparisonLine) !== 0
     ? Number(comparisonEdge) / Math.abs(Number(comparisonLine)) * 100 : null;
 
@@ -95,13 +104,14 @@ export function NFLReceivingCard({ card, matchup, now, sample = false, outdated 
       </aside>}
       {recorded && <p className="receiving-caption">Latest research comparison · May differ from the recorded signal above</p>}
       <div className="receiving-comparison" aria-label="Current projection and consensus">
-        <div><span>{locked ? outdated ? "Saved research projection" : "Live projection" : outdated ? "Saved projection" : "Projection"}</span><strong>{numberLabel(savedComparison ? savedComparison.projection : card.available ? card.projection.final : null)} <small>{unit}</small></strong></div>
+        <div><span>{locked ? outdated ? "Saved research projection" : "Live projection" : outdated ? "Saved projection" : "Projection"}{conditionalProjection && " · If playing"}</span><strong>{numberLabel(conditionalProjection ? researchProjection : savedComparison ? savedComparison.projection : researchProjection)} <small>{unit}</small></strong></div>
         <div><span>{savedComparison ? "Last saved consensus" : "Current consensus"}</span><strong>{numberLabel(freshComparison ? card.market.median_line : savedComparison?.median_line)}</strong></div>
-        <div><span>{savedComparison ? "Difference vs saved line" : "Difference"}</span><strong>{numberLabel(comparisonEdge, true)}</strong>{comparisonPercent != null && <small className="receiving-book-status">{numberLabel(comparisonPercent, true)}% vs line</small>}</div>
+        <div><span>{savedComparison ? "Difference vs saved line" : "Difference"}{conditionalProjection && " · If playing"}</span><strong>{numberLabel(comparisonEdge, true)}</strong>{comparisonPercent != null && <small className="receiving-book-status">{numberLabel(comparisonPercent, true)}% vs line</small>}</div>
       </div>
+      {conditionalProjection && <p className="receiving-caption">Model estimate and differences assume the player plays with their usual workload. Participation and workload are unconfirmed; injury reports are collected within 24 hours of kickoff. Differences compare this estimate with the displayed lines; they are not current signals.</p>}
       {savedComparison && <details className="receiving-saved-context">
         <summary>Saved quotes · {quoteAge(savedComparison.oldest_observed_at, now)} · {savedComparison.books_available} books</summary>
-        <p>Latest saved lines compared with the displayed projection. Not a live signal or a frozen prediction.</p>
+        <p>{conditionalProjection ? "Latest saved lines compared with the if-playing projection. Differences assume participation and usual workload; saved prices are not current." : "Latest saved lines compared with the displayed projection. Not a live signal or a frozen prediction."}</p>
         <p>Projection evidence: {savedComparison.projection_observed_at ? new Date(savedComparison.projection_observed_at).toLocaleString() : "Unavailable"}</p>
         <ul>{savedComparison.books.map(book => <li key={book.bookmaker}>{card.market.books.find(current => current.id === book.bookmaker)?.name ?? book.bookmaker}: {numberLabel(book.line)} · {quoteAge(book.last_seen_at, now)}<span className="receiving-book-status">{book.last_seen_at ? new Date(book.last_seen_at).toLocaleString() : "Observation time unavailable"}</span></li>)}</ul>
       </details>}
@@ -130,15 +140,18 @@ export function NFLReceivingCard({ card, matchup, now, sample = false, outdated 
         const under = displayBookSide(book, "under", now, outdated, sample);
         const liveEdge = books.some(book => book.id === id) && over.status === "fresh" && over.line === book?.line;
         const savedEdge = !liveEdge && (over.status === "fresh" || over.status === "stale") && over.line != null && over.line === book?.latest_saved?.over?.line ? book.saved_edge : null;
+        const displayedEdge = conditionalProjection
+          ? difference(researchProjection, over.status === "fresh" || over.status === "stale" ? over.line : null)
+          : liveEdge ? book?.edge : savedEdge;
         const name = book?.name ?? { draftkings: "DraftKings", fanduel: "FanDuel", bovada: "Bovada" }[id];
-        return <tr key={id}><th scope="row">{name}</th><td><BookSide quote={over} now={now} /></td><td><BookSide quote={under} now={now} /></td><td>{numberLabel(liveEdge ? book?.edge : savedEdge, true)}{(liveEdge ? book?.edge != null : savedEdge != null) && <small className="receiving-book-status">{liveEdge ? "Live diff." : "Saved diff."}</small>}</td></tr>;
+        return <tr key={id}><th scope="row">{name}</th><td><BookSide quote={over} now={now} /></td><td><BookSide quote={under} now={now} /></td><td>{numberLabel(displayedEdge, true)}{displayedEdge != null && <small className="receiving-book-status">{conditionalProjection ? `If playing · ${over.status === "fresh" ? "Current" : "Saved"} line` : liveEdge ? "Live diff." : "Saved diff."}</small>}</td></tr>;
       })}</tbody></table>
       <p className="receiving-caption">Each side uses its own line. Differences compare the displayed projection with that book’s OVER line. Saved differences are not live signals.</p>
     </section>
     <section aria-label="Recent performances" className="receiving-recent">
       <h4>Recent performances</h4>
       {games.length ? <>
-        <table id={historyId} className={`receiving-history ${!hasPastProps ? "receiving-history-production" : ""}`}>
+        <table id={historyId} className={`receiving-history ${!hasPastProps ? "receiving-history-production" : hasVolume ? "receiving-history-with-volume" : ""}`}>
           <caption className="sr-only">{card.player.name}: {PROP_LABELS[card.prop]} and recorded past props</caption>
           <thead><tr><th scope="col">Game</th><th scope="col">{unit === "yds" ? "Yards" : "Rec."}</th>{hasPastProps && <><th scope="col">Past prop</th><th scope="col">Result</th></>}{hasVolume && <th scope="col">{rushing ? "Carries" : "Targets"}</th>}</tr></thead>
           <tbody>{visibleGames.map((game, index) => {
@@ -164,7 +177,7 @@ export function NFLReceivingCard({ card, matchup, now, sample = false, outdated 
         <div><dt>{rushing ? "Carry trend adjustment" : "Opportunity adjustment"}</dt><dd>{numberLabel(card.projection.opportunity_adjustment, true)}</dd></div>
         {!rushing && <div><dt>Opponent adjustment</dt><dd>{numberLabel(card.projection.opponent_adjustment, true)}</dd></div>}
         {card.projection.floor_adjustment != null && Number(card.projection.floor_adjustment) !== 0 && <div><dt>Zero-floor adjustment</dt><dd>{numberLabel(card.projection.floor_adjustment, true)}</dd></div>}
-        <div><dt>Final projection</dt><dd>{numberLabel(card.projection.final)} {unit}</dd></div>
+        <div><dt>{conditionalProjection ? "Projection · If playing" : "Final projection"}</dt><dd>{numberLabel(conditionalProjection ? researchProjection : card.projection.final)} {unit}</dd></div>
         <div><dt>Recorded production median</dt><dd>{numberLabel(history?.season?.median)} {unit}</dd></div>
         <div><dt>Production standard deviation</dt><dd>{numberLabel(card.volatility.stddev)} {unit}</dd></div>
         {freshComparison && <div><dt>Current sportsbook line range</dt><dd>{numberLabel(card.market.line_range)} {unit}</dd></div>}

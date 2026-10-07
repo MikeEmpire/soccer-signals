@@ -120,7 +120,7 @@ export interface ReceivingCard {
   signal?: ReceivingSignal; live_signal?: ReceivingSignal | null; lock_at?: string;
   official_prediction?: { id: number; prediction_id: number; lock_at: string; recorded_at: string; signal: ReceivingSignal } | null;
   projection: { baseline?: Numeric; opportunity_adjustment?: Numeric; opponent_adjustment?: Numeric; floor_adjustment?: Numeric;
-    final?: Numeric; components?: Record<string, { value: Numeric; games: number; effective_weight: Numeric; used: boolean }> };
+    final?: Numeric; conditional_on_playing?: Numeric; components?: Record<string, { value: Numeric; games: number; effective_weight: Numeric; used: boolean }> };
   market: { books_expected: number; books_available: number; books_with_saved_prices?: number; median_line: Numeric; line_range: Numeric;
     expires_at?: string | null; consensus_expires_at?: string | null;
     saved_comparison?: SavedComparison | null;
@@ -152,7 +152,7 @@ export function consensusIsCurrent(card: ReceivingCard, now: number) {
   return card.market.books_available >= 2 && deadlineIsCurrent(card.market.consensus_expires_at, now);
 }
 // Normalize decimal fields without touching IDs, timestamps, or canonical threshold keys.
-const numericKeys = new Set(["rushing_yards", "carries", "leader_usage", "leader_share", "beneficiary_usage", "beneficiary_share", "baseline", "opportunity_adjustment", "opponent_adjustment", "final", "value", "effective_weight", "configured_weight", "median_line", "line_range", "line", "over_odds", "under_odds", "edge", "edge_vs_median", "saved_edge", "projection", "threshold", "edge_pct", "confidence", "mean", "median", "stddev", "cv", "iqr", "min", "max", "range", "over_rate_excluding_pushes", "closing_line", "clv", "actual", "american_odds", "receiving_yards", "receptions", "targets"]);
+const numericKeys = new Set(["conditional_on_playing", "rushing_yards", "carries", "leader_usage", "leader_share", "beneficiary_usage", "beneficiary_share", "baseline", "opportunity_adjustment", "opponent_adjustment", "final", "value", "effective_weight", "configured_weight", "median_line", "line_range", "line", "over_odds", "under_odds", "edge", "edge_vs_median", "saved_edge", "projection", "threshold", "edge_pct", "confidence", "mean", "median", "stddev", "cv", "iqr", "min", "max", "range", "over_rate_excluding_pushes", "closing_line", "clv", "actual", "american_odds", "receiving_yards", "receptions", "targets"]);
 export function normalizeNumeric(value: unknown): number | null {
   if (value === null || value === undefined || value === "") return null;
   if (typeof value !== "number" && typeof value !== "string") throw new Error("The NFL service returned an unexpected response.");
@@ -254,7 +254,7 @@ export async function loadReceivingFeed(signal?: AbortSignal, family: NFLFamily 
         if (page.truncated) throw new Error("The NFL service returned an incomplete slate. Try refreshing shortly.");
         const signals = [...cards.values()].sort((a, b) => a.player.name.localeCompare(b.player.name) || a.prop.localeCompare(b.prop) || a.id.localeCompare(b.id));
         return { ...first, games: [...games.values()].sort((a, b) => Date.parse(a.kickoff) - Date.parse(b.kickoff)), signals,
-          game_count: games.size, count: signals.length, projection_count: signals.filter(card => card.available).length, truncated: false, next_cursor: null };
+          game_count: games.size, count: signals.length, projection_count: signals.filter(card => card.available || card.projection.conditional_on_playing != null).length, truncated: false, next_cursor: null };
       }
     } while (cursor);
   }

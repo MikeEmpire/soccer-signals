@@ -453,6 +453,13 @@ button:focus-visible,summary:focus-visible,a:focus-visible { outline:2px solid v
 .receiving-history th:nth-child(2) { width:14%; }
 .receiving-history th:nth-child(3) { width:26%; }
 .receiving-history th:nth-child(4) { width:20%; }
+.receiving-history-with-volume th:first-child { width:32%; }
+.receiving-history-with-volume th:nth-child(2) { width:12%; }
+.receiving-history-with-volume th:nth-child(3) { width:23%; }
+.receiving-history-with-volume th:nth-child(4) { width:17%; }
+.receiving-history-with-volume th:nth-child(5) { width:16%; }
+.receiving-history-with-volume th:last-child,
+.receiving-history-with-volume td:last-child { white-space:nowrap; overflow-wrap:normal; }
 .receiving-history thead { font-size:10px; color:var(--muted); }
 .receiving-history tbody th { font-weight:400; }
 .receiving-history time,.receiving-history small,.receiving-history tbody th span { display:block; }
@@ -518,7 +525,6 @@ button:focus-visible,summary:focus-visible,a:focus-visible { outline:2px solid v
 .receiving-history-production th:first-child { width:55%; }
 .receiving-history-production th:nth-child(2),.receiving-history-production th:nth-child(3) { width:auto; }
 
-.nfl-family-tabs { margin:20px 0; width:fit-content; }
 .nfl-injury-notice,.nfl-injury-opportunity { border:1px solid #d9bd70; border-left:4px solid #b17a17; border-radius:10px; background:#fff8e7; color:#654913; padding:12px; margin:14px 0; font-size:12px; line-height:1.6; overflow-wrap:anywhere; }
 .nfl-injury-hold { border-color:#d9a39a; border-left-color:#ab4035; background:#fff0ed; color:#81352e; }
 .nfl-injury-title { display:flex; align-items:flex-start; gap:8px; }
