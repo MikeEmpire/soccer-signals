@@ -148,3 +148,24 @@ medians, effective weights, adjustments, final projection and volatility. Captur
 history is labeled as a recorded sample, not a season total. Empty past-prop
 columns are hidden per card, with targets shown when available. Data availability
 remains expandable. The API contract and payload size are unchanged in this pass.
+
+The NFL tabs also include **Rushing attempts** and **Anytime TD**. Attempts
+shares the paginated `/api/odds/nfl/rushing/` feed and displays carry-count
+projections and past attempts lines without a duplicate carries column or an
+extra volume adjustment. Anytime TD reads `/api/odds/nfl/anytime-td/` through
+its own no-store proxy and cursor stream.
+
+TD cards display the backend's uncalibrated scoring estimate as a percentage.
+YES/NO book prices retain null binary lines; missing NO offers stay unavailable.
+Implied percentages include bookmaker margin, and differences use percentage
+points. Display comparisons use the median of at least two fresh offered prices
+on that side, or the backend's labeled saved comparison. These calculations do
+not create signals. Current signals require the exact selected-side book
+probabilities to remain fresh; recorded and official signals retain their original
+evidence. Unresolved scorer history stays unknown, and passing TDs do not count.
+
+All prop families show backend `conditional_on_playing` estimates and display-only
+differences with the participation caveat while availability holds remain active.
+Sample preview includes fixed synthetic attempts and TD fixtures. An empty TD
+feed is valid: populated live cards depend on backend rollout and complete scorer
+history. The frontend does not enable backend capture jobs or change polling cadence.

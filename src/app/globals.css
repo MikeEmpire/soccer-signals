@@ -535,3 +535,15 @@ button:focus-visible,summary:focus-visible,a:focus-visible { outline:2px solid v
 .nfl-injury-notice summary,.nfl-injury-opportunity summary { cursor:pointer; font-weight:600; }
 .nfl-injury-opportunity ul { padding-left:16px; }
 .nfl-injury-opportunity small { display:block; }
+
+.receiving-toolbar .filter-shell { flex-wrap:wrap; }
+.receiving-toolbar .filter-shell button { flex:0 0 auto; white-space:nowrap; }
+.td-estimate { grid-template-columns:1fr; }
+.td-books { width:100%; table-layout:fixed; }
+.td-books th:first-child { width:28%; }
+.td-books td { overflow-wrap:anywhere; }
+.td-books small { display:block; margin-top:4px; color:var(--muted); font-size:10px; }
+.td-history th:first-child { width:40%; }
+.td-history th:nth-child(2) { width:22%; }
+.td-history th:nth-child(3) { width:12%; }
+.td-history th:nth-child(4) { width:26%; }

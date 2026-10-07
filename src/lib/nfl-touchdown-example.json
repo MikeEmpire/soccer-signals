@@ -1,0 +1,352 @@
+{
+  "revision": "receiving-research-v1",
+  "generated_at": "2026-09-30T16:55:00Z",
+  "window_hours": 72,
+  "window_start": "2026-09-30T16:55:00Z",
+  "window_end": "2026-10-03T16:55:00.000Z",
+  "game_count": 1,
+  "count": 1,
+  "projection_count": 1,
+  "truncated": false,
+  "games": [
+    {
+      "id": "target",
+      "name": "Illustrative NFL matchup",
+      "kickoff": "2026-09-30T17:00:00Z",
+      "game_metadata": {
+        "game_status": "pregame",
+        "data_source": "stored",
+        "is_final": false,
+        "is_processed": false,
+        "last_updated": "2026-10-02T06:09:43.900781+00:00",
+        "processing_state": "unknown",
+        "warnings": []
+      }
+    }
+  ],
+  "interpretation": "Research projections, not calibrated probabilities or betting recommendations",
+  "api_version": "anytime-td-production-v1",
+  "next_cursor": null,
+  "total_count": 1,
+  "signals": [
+    {
+      "game_id": "target",
+      "input_observed_at": "2026-09-30T16:55:00Z",
+      "market": {
+        "books_expected": 3,
+        "books_available": 3,
+        "books_with_saved_prices": 3,
+        "books": [
+          {
+            "id": "draftkings",
+            "name": "DraftKings",
+            "last_seen_at": "2026-09-30T16:55:00Z",
+            "line": null,
+            "yes_odds": 200,
+            "no_odds": null,
+            "yes_expires_at": "2026-09-30T17:15:00Z",
+            "no_expires_at": null,
+            "expires_at": "2026-09-30T17:15:00Z",
+            "edge": null,
+            "latest_saved": {
+              "yes": {
+                "status": "fresh",
+                "line": null,
+                "american_odds": 200,
+                "last_seen_at": "2026-09-30T16:55:00Z",
+                "provider_updated_at": "2026-09-30T16:55:00Z",
+                "expires_at": "2026-09-30T17:15:00Z",
+                "snapshot_id": "sample-0-0-over",
+                "stale_reasons": []
+              },
+              "no": null
+            }
+          },
+          {
+            "id": "fanduel",
+            "name": "FanDuel",
+            "last_seen_at": "2026-09-30T16:55:00Z",
+            "line": null,
+            "yes_odds": 200,
+            "no_odds": null,
+            "yes_expires_at": "2026-09-30T17:15:00Z",
+            "no_expires_at": null,
+            "expires_at": "2026-09-30T17:15:00Z",
+            "edge": null,
+            "latest_saved": {
+              "yes": {
+                "status": "fresh",
+                "line": null,
+                "american_odds": 200,
+                "last_seen_at": "2026-09-30T16:55:00Z",
+                "provider_updated_at": "2026-09-30T16:55:00Z",
+                "expires_at": "2026-09-30T17:15:00Z",
+                "snapshot_id": "sample-0-1-over",
+                "stale_reasons": []
+              },
+              "no": null
+            }
+          },
+          {
+            "id": "bovada",
+            "name": "Bovada",
+            "last_seen_at": "2026-09-30T16:55:00Z",
+            "line": null,
+            "yes_odds": 200,
+            "no_odds": null,
+            "yes_expires_at": "2026-09-30T17:15:00Z",
+            "no_expires_at": null,
+            "expires_at": "2026-09-30T17:15:00Z",
+            "edge": null,
+            "latest_saved": {
+              "yes": {
+                "status": "fresh",
+                "line": null,
+                "american_odds": 200,
+                "last_seen_at": "2026-09-30T16:55:00Z",
+                "provider_updated_at": "2026-09-30T16:55:00Z",
+                "expires_at": "2026-09-30T17:15:00Z",
+                "snapshot_id": "sample-0-2-over",
+                "stale_reasons": []
+              },
+              "no": null
+            }
+          }
+        ],
+        "median_line": null,
+        "line_range": null,
+        "expires_at": "2026-09-30T17:15:00Z",
+        "consensus_expires_at": "2026-09-30T17:15:00Z",
+        "saved_comparison": {
+          "source": "latest_saved_main_prices",
+          "projection_observed_at": "2026-09-30T16:55:00Z",
+          "sides": {
+            "yes": {
+              "implied_probability": 0.3333333333333333,
+              "projection": 0.5,
+              "edge": 0.16666666666666669,
+              "books_available": 3,
+              "books": [
+                {
+                  "bookmaker": "draftkings",
+                  "status": "fresh",
+                  "line": null,
+                  "american_odds": 200,
+                  "last_seen_at": "2026-09-30T16:55:00Z",
+                  "provider_updated_at": "2026-09-30T16:55:00Z",
+                  "expires_at": "2026-09-30T17:15:00Z",
+                  "snapshot_id": "sample-0-0-over",
+                  "stale_reasons": []
+                },
+                {
+                  "bookmaker": "fanduel",
+                  "status": "fresh",
+                  "line": null,
+                  "american_odds": 200,
+                  "last_seen_at": "2026-09-30T16:55:00Z",
+                  "provider_updated_at": "2026-09-30T16:55:00Z",
+                  "expires_at": "2026-09-30T17:15:00Z",
+                  "snapshot_id": "sample-0-1-over",
+                  "stale_reasons": []
+                },
+                {
+                  "bookmaker": "bovada",
+                  "status": "fresh",
+                  "line": null,
+                  "american_odds": 200,
+                  "last_seen_at": "2026-09-30T16:55:00Z",
+                  "provider_updated_at": "2026-09-30T16:55:00Z",
+                  "expires_at": "2026-09-30T17:15:00Z",
+                  "snapshot_id": "sample-0-2-over",
+                  "stale_reasons": []
+                }
+              ],
+              "status": "fresh",
+              "oldest_observed_at": "2026-09-30T16:55:00Z",
+              "newest_observed_at": "2026-09-30T16:55:00Z",
+              "expires_at": "2026-09-30T17:15:00Z"
+            }
+          }
+        }
+      },
+      "recent_games": {
+        "label": "Recent recorded receiving games",
+        "scope": "last_10_regular_and_postseason",
+        "observed_at": "2026-09-30T16:55:00Z",
+        "total_available": 8,
+        "games": [
+          {
+            "game_id": "sample-0",
+            "kickoff": "2026-09-27T18:00:00Z",
+            "season": 2026,
+            "season_type": 2,
+            "opponent": "Example Hawks",
+            "home_away": "away",
+            "value": 1,
+            "props": [],
+            "scored": 1,
+            "touchdowns": 1
+          },
+          {
+            "game_id": "sample-1",
+            "kickoff": "2026-09-20T18:00:00Z",
+            "season": 2026,
+            "season_type": 2,
+            "opponent": "Example Bears",
+            "home_away": "home",
+            "value": 0,
+            "props": [],
+            "scored": 0,
+            "touchdowns": 0
+          },
+          {
+            "game_id": "sample-2",
+            "kickoff": "2026-09-13T18:00:00Z",
+            "season": 2026,
+            "season_type": 2,
+            "opponent": "Example Lions",
+            "home_away": "away",
+            "value": 1,
+            "props": [],
+            "scored": 1,
+            "touchdowns": 1
+          },
+          {
+            "game_id": "sample-3",
+            "kickoff": "2026-01-18T18:00:00Z",
+            "season": 2025,
+            "season_type": 3,
+            "opponent": "Example Wolves",
+            "home_away": "home",
+            "value": 0,
+            "props": [],
+            "scored": 0,
+            "touchdowns": 0
+          },
+          {
+            "game_id": "sample-4",
+            "kickoff": "2026-01-11T18:00:00Z",
+            "season": 2025,
+            "season_type": 3,
+            "opponent": "Example Foxes",
+            "home_away": "away",
+            "value": 1,
+            "props": [],
+            "scored": 1,
+            "touchdowns": 1
+          },
+          {
+            "game_id": "sample-5",
+            "kickoff": "2026-01-04T18:00:00Z",
+            "season": 2025,
+            "season_type": 2,
+            "opponent": "Example Owls",
+            "home_away": "home",
+            "value": 0,
+            "props": [],
+            "scored": 0,
+            "touchdowns": 0
+          },
+          {
+            "game_id": "sample-6",
+            "kickoff": "2025-12-28T18:00:00Z",
+            "season": 2025,
+            "season_type": 2,
+            "opponent": "Example Bulls",
+            "home_away": "away",
+            "value": 1,
+            "props": [],
+            "scored": 1,
+            "touchdowns": 1
+          },
+          {
+            "game_id": "sample-7",
+            "kickoff": "2025-12-21T18:00:00Z",
+            "season": 2025,
+            "season_type": 2,
+            "opponent": "Example Rams",
+            "home_away": "home",
+            "value": 0,
+            "props": [],
+            "scored": 0,
+            "touchdowns": 0
+          }
+        ]
+      },
+      "id": "target:scorer:anytime_td",
+      "player": {
+        "id": "example-scorer",
+        "name": "Example Scorer"
+      },
+      "prop": "anytime_td",
+      "available": true,
+      "reason": null,
+      "data_gaps": [
+        "Synthetic scoring outcomes for interface preview."
+      ],
+      "hit_rates": {},
+      "history": {
+        "scored": {}
+      },
+      "opportunity": {},
+      "projection": {
+        "unit": "probability",
+        "final": 0.5,
+        "baseline": 0.5,
+        "scoring_games": 4,
+        "sample_size": 8,
+        "method": "beta_binomial_uniform_prior"
+      },
+      "edge_vs_median": null,
+      "volatility": {},
+      "opponent_context": {},
+      "signal": {
+        "version": "anytime-td-production-v1",
+        "direction": "YES",
+        "status": "eligible",
+        "projection": 0.5,
+        "threshold": null,
+        "comparison_side": "yes",
+        "implied_probability": 0.3333333333333333,
+        "book_probabilities": {
+          "draftkings": 0.3333333333333333,
+          "fanduel": 0.3333333333333333,
+          "bovada": 0.3333333333333333
+        },
+        "edge": 0.16666666666666669,
+        "edge_pct": 16.666666666666668,
+        "confidence": 80,
+        "reasons": [
+          {
+            "code": "probability_edge",
+            "text": "Smoothed scoring estimate compared with offered implied probability, including bookmaker margin."
+          }
+        ]
+      },
+      "availability": {
+        "status": "questionable",
+        "freshness": "fresh",
+        "blocking_reason": null,
+        "observed_at": "2026-09-30T16:55:00Z",
+        "source": "Synthetic example",
+        "players": [
+          {
+            "player_id": "runner",
+            "relationship": "subject",
+            "name": "Example Running Back",
+            "status": "questionable",
+            "injury": "Ankle",
+            "reported_at": "2026-09-30T16:55:00Z"
+          }
+        ]
+      },
+      "injury_opportunity": {
+        "contributors": []
+      },
+      "display": {
+        "state": "signal",
+        "label": "YES signal"
+      }
+    }
+  ]
+}

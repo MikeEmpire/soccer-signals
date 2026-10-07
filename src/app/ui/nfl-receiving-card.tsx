@@ -44,7 +44,8 @@ export function NFLReceivingCard({ card, matchup, now, sample = false, outdated 
   const signal = locked ? official?.signal : card.live_signal ?? card.signal;
   const directional = signal?.status === "eligible" && (signal.direction === "OVER" || signal.direction === "UNDER") && signal.threshold != null;
   const injuryHold = availabilityHeld(card.availability);
-  const rushing = card.prop === "rushing_yards";
+  const attempts = card.prop === "rushing_attempts";
+  const rushing = card.prop === "rushing_yards" || attempts;
   const showSignal = directional && (locked ? Boolean(official) : !injuryHold && consensusReady && (!card.display || card.display.state === "signal"));
   const reasonCodes = new Set(signal?.reasons.map(reason => reason.code));
   const fallbackStatus = reasonCodes.has("insufficient_history") || reasonCodes.has("insufficient_season_history") ? "More history needed"
@@ -56,7 +57,7 @@ export function NFLReceivingCard({ card, matchup, now, sample = false, outdated 
   else if (!books.length && (!card.display || ["signal", "no_edge", "awaiting_odds", "limited_coverage"].includes(card.display.state))) status = "No fresh odds available";
   else if (!consensusReady && ["signal", "no_edge"].includes(card.display?.state ?? "signal")) status = "Current comparison awaiting refresh";
   const freshComparison = consensusReady && card.market.median_line != null;
-  const savedComparison = !freshComparison ? card.market.saved_comparison : null;
+  const savedComparison = !freshComparison && card.market.saved_comparison?.source === "latest_saved_main_lines" ? card.market.saved_comparison : null;
   // Injury polling can leave final unavailable while the backend still supplies
   // a model estimate assuming participation. This does not clear a signal hold.
   const conditionalProjection = !(card.available && card.projection.final != null) && card.projection.conditional_on_playing != null;
@@ -69,13 +70,13 @@ export function NFLReceivingCard({ card, matchup, now, sample = false, outdated 
   if (showSignal && reasons.length < 3 && sampleSize != null) reasons.push(`Based on ${sampleSize} recent recorded games.`);
   const games = card.recent_games?.games.slice(0, 10) ?? [];
   const visibleGames = expanded ? games : games.slice(0, 5);
-  const unit = card.prop === "receptions" ? "rec" : "yds";
-  const history = card.history[card.prop === "receptions" ? "receptions" : "yards"];
+  const unit = attempts ? "att" : card.prop === "receptions" ? "rec" : "yds";
+  const history = card.history[attempts ? "carries" : card.prop === "receptions" ? "receptions" : "yards"];
   const sampleLabel = card.recent_games?.scope === "last_10_regular_and_postseason" ? "Recorded sample · up to 10 games" : "Recorded sample";
   const trend = card.opportunity.trend;
   const opportunity = card.opportunity.windows?.season;
   const hasPastProps = games.some(game => selectPastProp(game.props));
-  const hasVolume = rushing ? games.some(game => game.carries != null) : !hasPastProps && games.some(game => game.targets != null);
+  const hasVolume = attempts ? false : rushing ? games.some(game => game.carries != null) : !hasPastProps && games.some(game => game.targets != null);
   const leadSignal = recorded?.signal ?? (showSignal ? signal : null);
   const historyReason = leadSignal?.reasons.find(reason => reason.code === "historical_threshold");
   const comparisonLine = freshComparison ? card.market.median_line : savedComparison?.median_line;
@@ -153,7 +154,7 @@ export function NFLReceivingCard({ card, matchup, now, sample = false, outdated 
       {games.length ? <>
         <table id={historyId} className={`receiving-history ${!hasPastProps ? "receiving-history-production" : hasVolume ? "receiving-history-with-volume" : ""}`}>
           <caption className="sr-only">{card.player.name}: {PROP_LABELS[card.prop]} and recorded past props</caption>
-          <thead><tr><th scope="col">Game</th><th scope="col">{unit === "yds" ? "Yards" : "Rec."}</th>{hasPastProps && <><th scope="col">Past prop</th><th scope="col">Result</th></>}{hasVolume && <th scope="col">{rushing ? "Carries" : "Targets"}</th>}</tr></thead>
+          <thead><tr><th scope="col">Game</th><th scope="col">{attempts ? "Attempts" : unit === "yds" ? "Yards" : "Rec."}</th>{hasPastProps && <><th scope="col">Past prop</th><th scope="col">Result</th></>}{hasVolume && <th scope="col">{rushing ? "Carries" : "Targets"}</th>}</tr></thead>
           <tbody>{visibleGames.map((game, index) => {
             const past = selectPastProp(game.props);
             return <tr key={`${game.game_id ?? game.kickoff}-${index}`}>
@@ -168,13 +169,13 @@ export function NFLReceivingCard({ card, matchup, now, sample = false, outdated 
         <p className="receiving-caption">{hasPastProps ? "Past props use recorded pregame lines. — means unavailable." : "No historical sportsbook lines recorded for these games."}</p>
       </> : <p className="receiving-caption">Recent performances are not available yet.</p>}
     </section>
-    {card.available && <details className="receiving-details">
+    {(card.available || conditionalProjection) && <details className="receiving-details">
       <summary>Projection details</summary>
       {locked && <p className="receiving-caption">Current research calculations, separate from the frozen official prediction.</p>}
       <dl className="receiving-components">
         {Object.entries(card.projection.components ?? {}).map(([window, component]) => <div key={window}><dt>{window === "season" ? sampleLabel : window === "last_5" ? "Last 5 games" : window === "last_3" ? "Last 3 games" : window} median · {component.games} games</dt><dd>{numberLabel(component.value)} × {percent(component.effective_weight)}{!component.used && " · Not used"}</dd></div>)}
         <div><dt>Weighted baseline</dt><dd>{numberLabel(card.projection.baseline)}</dd></div>
-        <div><dt>{rushing ? "Carry trend adjustment" : "Opportunity adjustment"}</dt><dd>{numberLabel(card.projection.opportunity_adjustment, true)}</dd></div>
+        {!attempts && <div><dt>{rushing ? "Carry trend adjustment" : "Opportunity adjustment"}</dt><dd>{numberLabel(card.projection.opportunity_adjustment, true)}</dd></div>}
         {!rushing && <div><dt>Opponent adjustment</dt><dd>{numberLabel(card.projection.opponent_adjustment, true)}</dd></div>}
         {card.projection.floor_adjustment != null && Number(card.projection.floor_adjustment) !== 0 && <div><dt>Zero-floor adjustment</dt><dd>{numberLabel(card.projection.floor_adjustment, true)}</dd></div>}
         <div><dt>{conditionalProjection ? "Projection · If playing" : "Final projection"}</dt><dd>{numberLabel(conditionalProjection ? researchProjection : card.projection.final)} {unit}</dd></div>
@@ -182,6 +183,7 @@ export function NFLReceivingCard({ card, matchup, now, sample = false, outdated 
         <div><dt>Production standard deviation</dt><dd>{numberLabel(card.volatility.stddev)} {unit}</dd></div>
         {freshComparison && <div><dt>Current sportsbook line range</dt><dd>{numberLabel(card.market.line_range)} {unit}</dd></div>}
       </dl>
+      {attempts && <p className="receiving-caption">Weighted carry medians; no additional volume adjustment.</p>}
       {card.input_observed_at && <p className="receiving-caption">Evidence observed: {new Date(card.input_observed_at).toLocaleString()}</p>}
       {showSignal && <p className="receiving-caption">{locked ? "Official" : "Current"} evidence score: {numberLabel(signal.confidence)}/100 · Not a win probability</p>}
     </details>}
