@@ -121,7 +121,9 @@ test('TD pagination uses its own endpoint and forwards cancellation', async () =
     };
     const feed = await loadReceivingFeed(controller.signal, 'anytime-td');
     assert.equal(feed.signals.length, 1);
-    assert.deepEqual(calls, ['/api/odds/nfl/anytime-td/?limit=100', '/api/odds/nfl/anytime-td/?limit=100&cursor=td%2Bcursor']);
+    assert.equal(calls.length, 1);
+    await loadReceivingFeed(controller.signal, 'anytime-td', { cursor: feed.next_cursor });
+    assert.deepEqual(calls, ['/api/odds/nfl/anytime-td/?limit=20', '/api/odds/nfl/anytime-td/?limit=20&cursor=td%2Bcursor']);
   } finally { global.fetch = original; }
 });
 test('TD proxy stays on its backend path and whitelists pagination parameters', async () => {
@@ -153,4 +155,23 @@ test('TD cards without an input capture or official prediction remain valid unav
   assert.ok(html.includes('Prediction window closed'));
   assert.ok(html.includes('Latest research scoring estimate</span><strong>—'));
   assert.ok(!html.includes('receiving-direction'));
+});
+
+test('recorded touchdown counts provide a lower-bound fallback without resolving unknown outcomes', () => {
+  for (const [touchdowns, recorded, expected] of [[null, '2', '2+ TDs'], [null, 1, '1+ TDs'], [null, 0, '—'], [null, null, '—'], [null, undefined, '—'], [0, 2, '0'], [3, 2, '3']]) {
+    const game = { ...card.recent_games.games[0], value: null, scored: null, touchdowns, recorded_touchdowns: recorded, props: [] };
+    const data = { ...td, signals: [{ ...card, recent_games: { ...card.recent_games, games: [game] } }] };
+    const parsed = parseReceivingFeed(data, 'anytime-td').signals[0];
+    const html = render(parsed);
+    assert.ok(html.includes(`Unresolved</td><td>${expected}</td>`), expected);
+    assert.equal(html.includes('may be incomplete'), expected.includes('+'));
+    if (recorded === '2') assert.equal(parsed.recent_games.games[0].recorded_touchdowns, 2);
+  }
+});
+test('invalid recorded touchdown counts are rejected', () => {
+  for (const recorded_touchdowns of [-1, 1.5, 'invalid', true]) {
+    const data = structuredClone(td);
+    data.signals[0].recent_games.games[0].recorded_touchdowns = recorded_touchdowns;
+    assert.throws(() => parseReceivingFeed(data, 'anytime-td'), /unexpected/);
+  }
 });

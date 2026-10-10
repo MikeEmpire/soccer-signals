@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw, Shield } from "lucide-react";
-import { loadReceivingFeed, parseReceivingFeed, PROP_LABELS, type NFLFamily, type Prop, type ReceivingFeed } from "../../lib/nfl-receiving";
+import { loadReceivingFeed, mergeReceivingPage, NFLPageExpiredError, parseReceivingFeed, PROP_LABELS, type NFLFamily, type Prop, type ReceivingFeed } from "../../lib/nfl-receiving";
 import rushingExample from "../../lib/nfl-rushing-example.json";
 import attemptsExample from "../../lib/nfl-attempts-example.json";
 import touchdownExample from "../../lib/nfl-touchdown-example.json";
@@ -17,7 +17,7 @@ export function NFLReceivingDashboard() {
   const [prop, setProp] = useState<"all" | Prop>("all");
   const [preview, setPreview] = useState(false);
   const family: NFLFamily = prop === "anytime_td" ? "anytime-td" : prop === "rushing_yards" || prop === "rushing_attempts" ? "rushing" : "receiving";
-  return <NFLFamilyDashboard key={family} family={family} prop={prop} onPropChange={setProp} preview={preview} onPreviewChange={setPreview} />;
+  return <NFLFamilyDashboard key={`${family}:${prop}:${preview}`} family={family} prop={prop} onPropChange={setProp} preview={preview} onPreviewChange={setPreview} />;
 }
 
 function NFLFamilyDashboard({ family, prop, onPropChange, preview, onPreviewChange: setPreview }: {
@@ -32,6 +32,8 @@ function NFLFamilyDashboard({ family, prop, onPropChange, preview, onPreviewChan
   const [feed, setFeed] = useState<ReceivingFeed | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const request = useRef<AbortController | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [now, setNow] = useState(0);
   const expiryRefresh = useRef("");
@@ -42,14 +44,14 @@ function NFLFamilyDashboard({ family, prop, onPropChange, preview, onPreviewChan
   useEffect(() => {
     if (preview) return;
     let active = true;
-    let controller: AbortController | undefined;
     const refresh = async () => {
-      controller?.abort();
+      request.current?.abort();
       const current = new AbortController();
-      controller = current;
+      request.current = current;
+      setLoadingMore(false);
       setLoading(true);
       try {
-        const next = await loadReceivingFeed(current.signal, family);
+        const next = await loadReceivingFeed(current.signal, family, { prop: prop === "all" ? undefined : prop });
         if (active && !current.signal.aborted) { setFeed(next); setError(""); setNow(Date.now()); }
       } catch (err) {
         if (active && !current.signal.aborted) setError(err instanceof Error ? err.message : "Unable to load NFL research.");
@@ -59,8 +61,8 @@ function NFLFamilyDashboard({ family, prop, onPropChange, preview, onPreviewChan
     const visibleRefresh = () => { if (document.visibilityState === "visible") void refresh(); };
     const timer = setInterval(visibleRefresh, 60000);
     document.addEventListener("visibilitychange", visibleRefresh);
-    return () => { active = false; controller?.abort(); clearInterval(timer); document.removeEventListener("visibilitychange", visibleRefresh); };
-  }, [preview, refreshKey, family]);
+    return () => { active = false; request.current?.abort(); clearInterval(timer); document.removeEventListener("visibilitychange", visibleRefresh); };
+  }, [preview, refreshKey, family, prop]);
   useEffect(() => {
     if (preview || loading || error || !feed || !now || document.visibilityState !== "visible") return;
     const expired = feed.signals.filter(card =>
@@ -71,6 +73,28 @@ function NFLFamilyDashboard({ family, prop, onPropChange, preview, onPreviewChan
       setRefreshKey(key => key + 1);
     }
   }, [preview, loading, error, feed, now]);
+  const loadMore = async () => {
+    if (!feed?.next_cursor || loading || loadingMore || preview) return;
+    request.current?.abort();
+    const current = new AbortController();
+    request.current = current;
+    setLoadingMore(true);
+    try {
+      const page = await loadReceivingFeed(current.signal, family, {
+        prop: prop === "all" ? undefined : prop, cursor: feed.next_cursor,
+      });
+      if (!current.signal.aborted) {
+        setFeed(mergeReceivingPage(feed, page));
+        setError("");
+        setNow(Date.now());
+      }
+    } catch (err) {
+      if (!current.signal.aborted) {
+        if (err instanceof NFLPageExpiredError) setRefreshKey(key => key + 1);
+        else setError(err instanceof Error ? err.message : "Unable to load more NFL props.");
+      }
+    } finally { if (!current.signal.aborted) setLoadingMore(false); }
+  };
   const data = preview ? sampleFeeds[family] : feed;
   const windowHours = data?.window_hours ?? 72;
   const signals = data?.signals.filter(s => prop === "all" || s.prop === prop) ?? [];
@@ -85,13 +109,19 @@ function NFLFamilyDashboard({ family, prop, onPropChange, preview, onPreviewChan
     {!preview && error && <div className="receiving-error" role="alert">{error} {feed ? "Showing saved projections and labeled last-saved prices; live comparisons are hidden until refresh succeeds." : "You can open Sample preview to explore the interface."}<button onClick={() => setRefreshKey(n => n+1)}>Retry</button></div>}
     <div className="receiving-toolbar"><div className="filter-shell" role="group" aria-label="Prop type">{(["all", "receiving_yards", "receptions", "rushing_yards", "rushing_attempts", "anytime_td"] as const).map(value => <button key={value} aria-pressed={prop === value} className={prop === value ? "filter-active" : ""} onClick={() => onPropChange(value)}>{value === "all" ? "All receiving" : PROP_LABELS[value]}</button>)}</div>
       <span className="refresh-meta">{preview ? "Fixed example dataset" : loading ? "Refreshing…" : data ? `Response ${new Date(data.generated_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} · refreshes every minute` : "Waiting for data"}</span></div>
-    {data && <div className="receiving-summary"><span><strong>{data.game_count}</strong> {preview ? "illustrative matchup" : "upcoming games"}</span><span><strong>{signals.filter(card => card.available || card.projection.conditional_on_playing != null).length}</strong> projections available</span><span>{touchdown ? "1 touchdown market" : rushing ? "2 rushing markets" : "2 receiving markets"} · 3 supported books</span></div>}
+    {data && <div className="receiving-summary"><span><strong>{data.game_count}</strong> {preview ? "illustrative matchup" : "upcoming games"}</span><span><strong>{signals.filter(card => card.available || card.projection.conditional_on_playing != null).length}</strong> projections available{!preview ? " in loaded cards" : ""}</span><span>{touchdown ? "1 touchdown market" : rushing ? "2 rushing markets" : "2 receiving markets"} · 3 supported books</span></div>}
     {!preview && !data && loading && <div className="receiving-empty" role="status"><h3>Loading upcoming NFL research…</h3><p>Checking stored games and pregame projections.</p></div>}
     {data?.games.length === 0 && <div className="receiving-empty"><h3>No NFL games in the next {windowHours} hours</h3><p>The stored schedule has no upcoming matchups in this window. Check back closer to kickoff, or open Sample preview.</p></div>}
-    {data?.games.map(game => { const cards = signals.filter(s => s.game_id === game.id); return <section className="content-section" key={game.id}>
+    {data?.games.filter(game => !data.next_cursor || signals.some(card => card.game_id === game.id)).map(game => { const cards = signals.filter(s => s.game_id === game.id); return <section className="content-section" key={game.id}>
       <div className="section-heading"><div><span className="section-kicker">{new Date(game.kickoff).toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" })} · {new Date(game.kickoff).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", timeZoneName: "short" })}</span><h2>{game.name || "Upcoming NFL matchup"}</h2></div><span className="section-count">{cards.length} player props</span></div>
       {cards.length ? <div className="signal-grid">{cards.map(card => card.prop === "anytime_td" ? <NFLTouchdownCard key={card.id} card={card} matchup={game.name} now={preview ? sampleTime : now} sample={preview} outdated={Boolean(error) && !preview} /> : <NFLReceivingCard key={card.id} card={card} matchup={game.name} now={preview ? sampleTime : now} sample={preview} outdated={Boolean(error) && !preview} />)}</div> : <div className="receiving-empty"><h3>{touchdown ? "Touchdown" : rushing ? "Rushing" : "Receiving"} research is pending</h3><p>Player props will appear when verified markets and pregame research data are available for this matchup.</p></div>}
     </section>; })}
+    {!preview && data && <div className="receiving-toolbar" aria-live="polite">
+      <span className="refresh-meta">Showing {signals.length} of {data.total_count ?? data.count} player props</span>
+      {data.next_cursor && <button className="refresh-button" disabled={loading || loadingMore} onClick={() => void loadMore()}>
+        {loadingMore ? "Loading more…" : "Load more"}
+      </button>}
+    </div>}
     {process.env.NEXT_PUBLIC_API_BASE_URL && <p className="receiving-note"><a href={`${process.env.NEXT_PUBLIC_API_BASE_URL.replace(/\/$/, "")}/admin/odds/nflreceivingofficial/research/`} target="_blank" rel="noreferrer">Historical results · Staff research dashboard</a> · Sign in with your backend staff account. Results, grades and CLV are supplied by the backend.</p>}
     <footer><span>Research estimates · No calibrated probabilities or betting recommendations.</span><Link href="/">Back to live odds</Link></footer>
   </main></div>;

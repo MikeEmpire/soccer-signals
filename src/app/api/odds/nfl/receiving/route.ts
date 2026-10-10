@@ -5,7 +5,7 @@ export async function GET(request: Request) {
   try {
     const params = new URLSearchParams();
     const incoming = new URL(request.url).searchParams;
-    for (const key of ["limit", "cursor"]) {
+    for (const key of ["limit", "cursor", "prop"]) {
       const value = incoming.get(key);
       if (value !== null) params.set(key, value);
     }

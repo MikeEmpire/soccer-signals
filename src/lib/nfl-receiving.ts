@@ -23,7 +23,7 @@ export interface PastProp {
 export interface RecentGame {
   game_id: string | null; kickoff: string; season?: number | null; season_type?: number | null;
   opponent_id?: string | null; opponent: string | null; home_away?: string | null;
-  scored?: Numeric; touchdowns?: Numeric;
+  scored?: Numeric; touchdowns?: Numeric; recorded_touchdowns?: Numeric;
   rushing_yards?: Numeric; carries?: Numeric; receiving_yards?: Numeric; receptions?: Numeric; targets?: Numeric; value: Numeric; props: PastProp[];
 }
 export function selectPastProp(props: PastProp[], preferredBook?: string) {
@@ -166,7 +166,7 @@ export function consensusIsCurrent(card: ReceivingCard, now: number) {
   return card.market.books_available >= 2 && deadlineIsCurrent(card.market.consensus_expires_at, now);
 }
 // Normalize decimal fields without touching IDs, timestamps, or canonical threshold keys.
-const numericKeys = new Set(["yes_odds", "no_odds", "implied_probability", "scored", "touchdowns", "scoring_games", "conditional_on_playing", "rushing_yards", "carries", "leader_usage", "leader_share", "beneficiary_usage", "beneficiary_share", "baseline", "opportunity_adjustment", "opponent_adjustment", "final", "value", "effective_weight", "configured_weight", "median_line", "line_range", "line", "over_odds", "under_odds", "edge", "edge_vs_median", "saved_edge", "projection", "threshold", "edge_pct", "confidence", "mean", "median", "stddev", "cv", "iqr", "min", "max", "range", "over_rate_excluding_pushes", "closing_line", "clv", "actual", "american_odds", "receiving_yards", "receptions", "targets"]);
+const numericKeys = new Set(["yes_odds", "no_odds", "implied_probability", "scored", "touchdowns", "recorded_touchdowns", "scoring_games", "conditional_on_playing", "rushing_yards", "carries", "leader_usage", "leader_share", "beneficiary_usage", "beneficiary_share", "baseline", "opportunity_adjustment", "opponent_adjustment", "final", "value", "effective_weight", "configured_weight", "median_line", "line_range", "line", "over_odds", "under_odds", "edge", "edge_vs_median", "saved_edge", "projection", "threshold", "edge_pct", "confidence", "mean", "median", "stddev", "cv", "iqr", "min", "max", "range", "over_rate_excluding_pushes", "closing_line", "clv", "actual", "american_odds", "receiving_yards", "receptions", "targets"]);
 export function normalizeNumeric(value: unknown): number | null {
   if (value === null || value === undefined || value === "") return null;
   if (typeof value !== "number" && typeof value !== "string") throw new Error("The NFL service returned an unexpected response.");
@@ -245,6 +245,7 @@ function validTDCard(card: ReceivingCard) {
       && (signal.comparison_side == null || ["yes", "no"].includes(signal.comparison_side))
       && (signal.book_probabilities == null || (typeof signal.book_probabilities === "object" && !Array.isArray(signal.book_probabilities) && Object.values(signal.book_probabilities).every(probability)))))
     && (card.recent_games?.games.every(game => [null, 0, 1].includes(game.value as number | null)
+      && (game.recorded_touchdowns == null || (Number.isInteger(game.recorded_touchdowns) && Number(game.recorded_touchdowns) >= 0))
       && (game.scored == null || [0, 1].includes(Number(game.scored))) && game.props.every(prop => prop.line === null)) ?? true);
 }
 export function parseReceivingFeed(value: unknown, family: NFLFamily = "receiving"): ReceivingFeed {
@@ -265,36 +266,35 @@ export function parseReceivingFeed(value: unknown, family: NFLFamily = "receivin
   }
   return data;
 }
-export async function loadReceivingFeed(signal?: AbortSignal, family: NFLFamily = "receiving"): Promise<ReceivingFeed> {
-  // One restart allows expired cursors to recover without an infinite retry loop.
-  for (let attempt = 0; attempt < 2; attempt++) {
-    let cursor: string | null = null;
-    let first: ReceivingFeed | undefined;
-    const cards = new Map<string, ReceivingCard>();
-    const games = new Map<string, ReceivingFeed["games"][number]>();
-    const visited = new Set<string>();
-    do {
-      signal?.throwIfAborted();
-      const params = new URLSearchParams({ limit: "100" });
-      if (cursor) params.set("cursor", cursor);
-      const response = await fetch(`/api/odds/nfl/${family}/?${params}`, { cache: "no-store", signal });
-      if (response.status === 400 && cursor && attempt === 0) break;
-      if (!response.ok) throw new Error("NFL research is unavailable. Try refreshing shortly.");
-      const page = parseReceivingFeed(await response.json(), family);
-      signal?.throwIfAborted();
-      first ??= page;
-      page.games.forEach(game => games.set(game.id, game));
-      page.signals.forEach(card => cards.set(card.id, card));
-      cursor = page.next_cursor ?? null;
-      if (cursor && visited.has(cursor)) throw new Error("The NFL service returned a repeated cursor.");
-      if (cursor) visited.add(cursor);
-      if (!cursor) {
-        if (page.truncated) throw new Error("The NFL service returned an incomplete slate. Try refreshing shortly.");
-        const signals = [...cards.values()].sort((a, b) => a.player.name.localeCompare(b.player.name) || a.prop.localeCompare(b.prop) || a.id.localeCompare(b.id));
-        return { ...first, games: [...games.values()].sort((a, b) => Date.parse(a.kickoff) - Date.parse(b.kickoff)), signals,
-          game_count: games.size, count: signals.length, projection_count: signals.filter(card => card.available || card.projection.conditional_on_playing != null).length, truncated: false, next_cursor: null };
-      }
-    } while (cursor);
-  }
-  throw new Error("NFL research is unavailable. Try refreshing shortly.");
+export class NFLPageExpiredError extends Error {
+  constructor() { super("This page has expired. Refreshing the latest props."); }
+}
+
+export async function loadReceivingFeed(
+  signal?: AbortSignal,
+  family: NFLFamily = "receiving",
+  options: { prop?: Prop; cursor?: string | null } = {},
+): Promise<ReceivingFeed> {
+  signal?.throwIfAborted();
+  const params = new URLSearchParams({ limit: "20" });
+  if (options.prop) params.set("prop", options.prop);
+  if (options.cursor) params.set("cursor", options.cursor);
+  const response = await fetch(`/api/odds/nfl/${family}/?${params}`, { cache: "no-store", signal });
+  if (response.status === 400 && options.cursor) throw new NFLPageExpiredError();
+  if (!response.ok) throw new Error("NFL research is unavailable. Try refreshing shortly.");
+  const page = parseReceivingFeed(await response.json(), family);
+  signal?.throwIfAborted();
+  if (page.next_cursor && page.next_cursor === options.cursor) throw new Error("The NFL service returned a repeated cursor.");
+  if (page.truncated && !page.next_cursor) throw new Error("The NFL service returned an incomplete slate. Try refreshing shortly.");
+  return { ...page, projection_count: page.signals.filter(card => card.available || card.projection.conditional_on_playing != null).length };
+}
+
+export function mergeReceivingPage(previous: ReceivingFeed, page: ReceivingFeed): ReceivingFeed {
+  const games = new Map(previous.games.map(game => [game.id, game]));
+  page.games.forEach(game => games.set(game.id, game));
+  const cards = new Map(previous.signals.map(card => [card.id, card]));
+  page.signals.forEach(card => cards.set(card.id, card));
+  const signals = [...cards.values()];
+  return { ...page, games: [...games.values()], game_count: games.size, signals,
+    count: signals.length, projection_count: signals.filter(card => card.available || card.projection.conditional_on_playing != null).length };
 }

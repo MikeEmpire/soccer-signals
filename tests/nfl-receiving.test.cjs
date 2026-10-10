@@ -14,7 +14,7 @@ for (const extension of ['.ts', '.tsx']) {
 const React = require('react');
 const { renderToStaticMarkup } = require('react-dom/server');
 const { NFLReceivingCard } = require('../src/app/ui/nfl-receiving-card.tsx');
-const { parseReceivingFeed, numberLabel, loadReceivingFeed, marketIsCurrent, selectPastProp, displayBookSide, quoteAge } = require('../src/lib/nfl-receiving.ts');
+const { parseReceivingFeed, numberLabel, loadReceivingFeed, mergeReceivingPage, NFLPageExpiredError, marketIsCurrent, selectPastProp, displayBookSide, quoteAge } = require('../src/lib/nfl-receiving.ts');
 const example = require('../src/lib/nfl-receiving-example.json');
 const card = example.signals.find(s => s.prop === 'receiving_yards');
 const now = Date.parse(example.generated_at);
@@ -37,7 +37,7 @@ test('loader rejects failures and malformed data and forwards cancellation', asy
   const controller = new AbortController();
   try {
     global.fetch = async (url, options) => {
-      assert.equal(url, '/api/odds/nfl/receiving/?limit=100');
+      assert.equal(url, '/api/odds/nfl/receiving/?limit=20');
       assert.equal(options.signal, controller.signal);
       assert.equal(options.cache, 'no-store');
       return Response.json(example);
@@ -68,24 +68,36 @@ test('proxy is no-store, does not forward arbitrary URLs, and distinguishes upst
   } finally { global.fetch = original; if (base === undefined) delete process.env.NEXT_PUBLIC_API_BASE_URL; else process.env.NEXT_PUBLIC_API_BASE_URL = base; }
 });
 
-test('traverses more than 300 cards, deduplicates and restarts an expired cursor', async () => {
+test('loads one prop page on demand and merges without duplicating cards', async () => {
   const original = global.fetch;
-  let calls = 0;
+  const calls = [];
   const cursor = 'opaque +/?=&';
   try {
     global.fetch = async url => {
-      calls++;
+      calls.push(url);
       const params = new URL(url, 'http://localhost').searchParams;
-      if (calls === 2) return Response.json({}, { status: 400 });
-      if (!params.has('cursor')) return Response.json({ ...example, next_cursor: cursor, truncated: true,
-        signals: Array.from({ length: 300 }, (_, i) => ({ ...card, id: String(i) })) });
+      assert.equal(params.get('limit'), '20');
+      assert.equal(params.get('prop'), 'receiving_yards');
+      if (!params.has('cursor')) return Response.json({ ...example, total_count: 21, next_cursor: cursor, truncated: true,
+        signals: Array.from({ length: 20 }, (_, i) => ({ ...card, id: String(i) })) });
       assert.equal(params.get('cursor'), cursor);
-      return Response.json({ ...example, next_cursor: null, signals: [{ ...card, id: '299' }, { ...card, id: '300' }] });
+      return Response.json({ ...example, total_count: 21, next_cursor: null, truncated: false,
+        signals: [{ ...card, id: '19' }, { ...card, id: '20' }] });
     };
-    const feed = await loadReceivingFeed();
-    assert.equal(calls, 4);
-    assert.equal(feed.signals.length, 301);
-    assert.equal(feed.projection_count, 301);
+    const first = await loadReceivingFeed(undefined, 'receiving', { prop: 'receiving_yards' });
+    assert.equal(calls.length, 1);
+    assert.equal(first.signals.length, 20);
+    assert.equal(first.next_cursor, cursor);
+    const page = await loadReceivingFeed(undefined, 'receiving', { prop: 'receiving_yards', cursor: first.next_cursor });
+    const feed = mergeReceivingPage(first, page);
+    assert.equal(calls.length, 2);
+    assert.equal(feed.signals.length, 21);
+    assert.equal(feed.projection_count, 21);
+    assert.equal(feed.total_count, 21);
+    assert.equal(feed.next_cursor, null);
+    assert.equal(feed.games.length, first.games.length);
+    global.fetch = async () => Response.json({}, { status: 400 });
+    await assert.rejects(loadReceivingFeed(undefined, 'receiving', { cursor }), NFLPageExpiredError);
   } finally { global.fetch = original; }
 });
 const signal = { direction: 'UNDER', status: 'eligible', projection: '62.75', threshold: '78.5', edge: '-15.75', edge_pct: '-20.1', confidence: 75, threshold_is_offered: false, reasons: [{ code: 'test_reason', text: 'Backend explanation' }] };
@@ -110,9 +122,10 @@ test('proxy encodes supported parameters and preserves cursor errors', async () 
       assert.equal(parsed.searchParams.get('cursor'), 'a+/=');
       assert.equal(parsed.searchParams.get('limit'), '100');
       assert.equal(parsed.searchParams.has('token'), false);
+      assert.equal(parsed.searchParams.get('prop'), 'receptions');
       return Response.json({}, { status: 400 });
     };
-    assert.equal((await GET(new Request('http://localhost/api/odds/nfl/receiving/?limit=100&cursor=a%2B%2F%3D&token=ignore'))).status, 400);
+    assert.equal((await GET(new Request('http://localhost/api/odds/nfl/receiving/?limit=100&cursor=a%2B%2F%3D&prop=receptions&token=ignore'))).status, 400);
   } finally { global.fetch = original; if (base === undefined) delete process.env.NEXT_PUBLIC_API_BASE_URL; else process.env.NEXT_PUBLIC_API_BASE_URL = base; }
 });
 
@@ -124,7 +137,9 @@ test('cancellation between pages prevents obsolete traversal and partial errors 
     await assert.rejects(loadReceivingFeed(controller.signal), { name: 'AbortError' });
     let calls = 0;
     global.fetch = async () => ++calls === 1 ? Response.json({ ...example, next_cursor: 'next' }) : Response.json({}, { status: 503 });
-    await assert.rejects(loadReceivingFeed(), /unavailable/);
+    const first = await loadReceivingFeed();
+    await assert.rejects(loadReceivingFeed(undefined, 'receiving', { cursor: first.next_cursor }), /unavailable/);
+    assert.equal(first.next_cursor, 'next');
     global.fetch = async () => Response.json({ ...example, next_cursor: null, truncated: true });
     await assert.rejects(loadReceivingFeed(), /incomplete slate/);
   } finally { global.fetch = original; }
@@ -438,7 +453,9 @@ test('rushing pagination stays on the rushing endpoint with its own cursor', asy
       assert.equal(parsed.searchParams.get('cursor'), 'rushing +/');
       return Response.json(rushingExample);
     };
-    assert.equal((await loadReceivingFeed(undefined, 'rushing')).signals.length, 1);
+    const first = await loadReceivingFeed(undefined, 'rushing');
+    assert.equal(calls, 1);
+    assert.equal((await loadReceivingFeed(undefined, 'rushing', { cursor: first.next_cursor })).signals.length, 1);
     assert.equal(calls, 2);
   } finally { global.fetch = original; }
 });
